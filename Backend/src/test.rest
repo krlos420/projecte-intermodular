@@ -1,0 +1,239 @@
+# Registrar o crear un usuari
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Test2",
+  "email": "test6@example.com",
+  "phone": "1234",
+  "registration_date": "2026-01-02",
+  "password": "password"
+}
+
+### Iniciar sessió amb un usuari autenticat
+POST http://localhost:8080/api/auth/login 
+Content-Type: application/json
+
+{
+  "email": "test2@example.com",
+  "password": "password"
+}
+
+### Iniciar sessió de manera inválida
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "bad_password"
+}
+
+### Obtindre els usuaris existents
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Obtindre un usuari existent
+GET http://localhost:8080/api/users/show/1
+Accept: application/json
+
+### Actualitzar un usuari correctament
+PUT http://localhost:8080/api/users/update/1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Juan Actualizado",
+    "email": "nuevo_email@test.com",
+    "phone": "555-1234",
+    "registration_date": "2023-01-01"
+}
+
+### Eliminar un usuari existent
+DELETE http://localhost:8080/api/users/destroy/1
+Accept: application/json
+
+
+### Crear un punt d'entrega
+POST http://localhost:8080/api/delivery_points/create
+Content-Type: application/json
+
+{
+    "id_user": 1,
+    "name": "Punto Centro",
+    "direction": "Carrer Major 123",
+    "latitude": "41.3851",
+    "length": "2.1734"
+}
+
+### Llistar tots els punts d'entrega
+GET http://localhost:8080/api/delivery_points
+Accept: application/json
+
+### Mostrar un punt d'entrega específic
+GET http://localhost:8080/api/delivery_points/show/1
+Accept: application/json
+
+### Actualitzar un punt d'entrega
+PUT http://localhost:8080/api/delivery_points/update/2
+Content-Type: application/json
+
+{
+    "name": "Punto Centro Actualizado",
+    "direcction": "Carrer Menor 456", 
+    "latitude": "41.3900",
+    "length": "2.1800"
+}
+
+### Eliminar un punt d'entrega
+DELETE http://localhost:8080/api/delivery_points/destroy/2
+Accept: application/json
+
+### Crear una review
+POST http://localhost:8080/api/reviews/create
+Content-Type: application/json
+
+{
+    "id_sale": 1,
+    "calification": 5,
+    "comment": "Tot perfecte, molt ràpid",
+    "review_date": "2023-10-30"
+}
+
+### Llistar totes les reviews
+GET http://localhost:8080/api/reviews
+Accept: application/json
+
+### Mostrar una review específica
+GET http://localhost:8080/api/reviews/show/2
+Accept: application/json
+
+### Actualitzar una review
+PUT http://localhost:8080/api/reviews/update/2
+Content-Type: application/json
+
+{
+    "id_sale": 1,
+    "calification": 3,
+    "comment": "Ha arribat una mica tard",
+    "review_date": "2023-10-31"
+}
+
+### Eliminar una review
+DELETE http://localhost:8080/api/reviews/destroy/2
+Accept: application/json
+### 1. Crear una nueva venta
+POST http://localhost:8080/api/sales/create
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id_product": 1,
+    "id_buyer": 2,
+    "id_seller": 3,
+    "id_delivery_point": 1,
+    "sale_date": "2023-10-27",
+    "total": 55.50,
+    "collection_date": "2023-10-30"
+}
+
+### 2. Listar todas las ventas
+GET http://localhost:8080/api/sales
+Accept: application/json
+
+### 3. Mostrar una venta específica
+GET http://localhost:8080/api/sales/show/1
+Accept: application/json
+
+### 4. Actualizar una venta
+PUT http://localhost:8080/api/sales/update/1
+Content-Type: application/json
+Accept: application/json
+
+{
+    "sale_date": "2023-11-01",
+    "total": 100.00,
+    "collection_date": "2023-11-05"
+}
+
+### 5. Eliminar una venta
+DELETE http://localhost:8080/api/sales/destroy/1
+Accept: application/json
+
+### 6. Crear un producto
+# Nota: Enviamos JSON. Si quieres subir imagen, el cliente debe usar multipart/form-data.
+POST http://localhost:8080/api/products/store
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id_user": 2,
+    "id_delivery_point": 1,
+    "name": "Tomates de Huerto",
+    "description": "Tomates ecológicos recién recogidos",
+    "price": 3.50,
+    "stock": 50,
+    "type_stock": "Kg",
+    "state": "Disponible",
+    "categories": [2, 3]
+}
+
+### 7. Listar todos los productos
+GET http://localhost:8080/api/products
+Accept: application/json
+
+### 8. Mostrar un producto específico
+GET http://localhost:8080/api/products/show/3
+Accept: application/json
+
+### 9. Actualizar un producto
+# Nota: Actualizamos datos textuales. El stock y precio cambian.
+PUT http://localhost:8080/api/products/update/3
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id_user": 2,
+    "id_delivery_point": 1,
+    "name": "Tomates de Huerto Premium",
+    "description": "Tomates ecológicos calidad superior",
+    "price": 4.00,
+    "stock": 45,
+    "type_stock": "Kg",
+    "state": "Reservado",
+    "categories": [2]
+}
+
+### 10. Eliminar un producto
+DELETE http://localhost:8080/api/products/destroy/2
+Accept: application/json
+
+### 11. Crear una categoria
+POST http://localhost:8080/api/categories/store
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Verdura"
+}
+
+### 12. Listar todas las categorias
+GET http://localhost:8080/api/categories
+Accept: application/json
+
+### 13. Mostrar una categoria específica
+GET http://localhost:8080/api/categories/show/2
+Accept: application/json
+
+### 14. Actualizar una categoria
+PUT http://localhost:8080/api/categories/update/2
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "Fruta"
+}
+
+### 15. Eliminar una categoria
+DELETE http://localhost:8080/api/categories/destroy/2
+Accept: application/json
