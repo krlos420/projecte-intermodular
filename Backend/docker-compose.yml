@@ -1,4 +1,4 @@
-name: proxiMarkt
+name: comp-together
 
 services:
   php:
@@ -11,7 +11,7 @@ services:
       MYSQL_HOST: mysql
       MYSQL_USER: alumno
       MYSQL_PASSWORD: alumno
-      MYSQL_DB: proxiMarkt
+      MYSQL_DB: comp-together
     depends_on:
       - mysql
 
@@ -31,11 +31,11 @@ services:
       MYSQL_ROOT_PASSWORD: administrador
       MYSQL_USER: alumno
       MYSQL_PASSWORD: alumno
-      MYSQL_DATABASE: proxiMarkt
+      MYSQL_DATABASE: comp-together
     volumes:
-      - proxiMarkt:/var/lib/mysql
+      - comp-together:/var/lib/mysql
     ports:
       - "3306:3306"
 
 volumes:
-  proxiMarkt:
+  comp-together:
