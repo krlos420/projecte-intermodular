@@ -23,7 +23,7 @@ class Expense extends Model
     // Usuario que pagó este gasto
     public function payer()
     {
-        return $this->belongsTo(User::class, 'payer_id');
+        return $this->belongsTo(User::class, 'payer_id', 'id_user');
     }
 
     // Piso al que pertenece el gasto

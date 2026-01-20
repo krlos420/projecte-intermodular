@@ -13,7 +13,9 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->decimal('amount', 10, 2);
-            $table->foreignId('payer_id')->constrained('users')->onDelete('cascade'); // Quien pagó
+            // FK a users.id_user (no users.id)
+            $table->unsignedInteger('payer_id');
+            $table->foreign('payer_id')->references('id_user')->on('users')->onDelete('cascade');
             $table->foreignId('house_id')->constrained('houses')->onDelete('cascade');
             $table->date('date');
             $table->timestamps();

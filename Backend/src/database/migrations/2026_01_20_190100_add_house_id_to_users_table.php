@@ -10,11 +10,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('house_id')
-                  ->nullable() // Puede no tener piso asignado
-                  ->after('password')
-                  ->constrained('houses')
-                  ->onDelete('set null');
+            $table->unsignedBigInteger('house_id')->nullable()->after('password');
+            $table->foreign('house_id')->references('id')->on('houses')->onDelete('set null');
         });
     }
 
