@@ -20,7 +20,14 @@ class User extends Authenticatable
         'password',
         'phone',
         'registration_date',
+        'house_id',
     ];
+
+    // Piso donde vive el usuario
+    public function house()
+    {
+        return $this->belongsTo(House::class, 'house_id');
+    }
     protected $casts = [
         'registration_date' => 'date',
     ];
@@ -44,5 +51,11 @@ class User extends Authenticatable
     public function seller()
     {
         return $this->hasMany(Sale::class, 'id_seller', 'id_user');
+    }
+
+    // Gastos pagados por este usuario
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'payer_id');
     }
 }
