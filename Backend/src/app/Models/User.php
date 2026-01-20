@@ -23,11 +23,6 @@ class User extends Authenticatable
         'house_id',
     ];
 
-    // Piso donde vive el usuario
-    public function house()
-    {
-        return $this->belongsTo(House::class, 'house_id');
-    }
     protected $casts = [
         'registration_date' => 'date',
     ];
@@ -36,21 +31,11 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-    public function delivery_points()
+
+    // Piso donde vive el usuario
+    public function house()
     {
-        return $this->hasMany(Delivery_Point::class, 'id_user', 'id_user');
-    }
-    public function products()
-    {
-        return $this->hasMany(Product::class, 'id_user', 'id_user');
-    }
-    public function buyer()
-    {
-        return $this->hasMany(Sale::class, 'id_buyer', 'id_user');
-    }
-    public function seller()
-    {
-        return $this->hasMany(Sale::class, 'id_seller', 'id_user');
+        return $this->belongsTo(House::class, 'house_id');
     }
 
     // Gastos pagados por este usuario
