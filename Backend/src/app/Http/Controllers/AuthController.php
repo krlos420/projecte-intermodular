@@ -97,4 +97,32 @@ class AuthController extends Controller
         }
         
     }
+
+    /**
+     * Funció per a tancar sessió de l'usuari
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function logout(Request $request)
+    {
+        try {
+            // Eliminem tots els tokens de l'usuari
+            $request->user()->tokens()->delete();
+
+            // Eliminem la cookie del token
+            $cookie = cookie()->forget('auth_token');
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Sessió tancada correctament',
+            ], 200)->withCookie($cookie);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al tancar sessió',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

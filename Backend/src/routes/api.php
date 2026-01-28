@@ -15,6 +15,9 @@ Route::prefix('auth')->name('auth.')->group(function (){
 // Rutas protegidas (requieren token)
 Route::middleware('auth:sanctum')->group(function() {
 
+    // Logout
+    Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
     // Usuario
     Route::prefix('users')->name('users.')->group(function (){
         Route::get('/me', [UserController::class, 'show'])->name('me');
