@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\HouseController;
+use App\Http\Controllers\ExpenseController;
 
 // Autenticación
 Route::prefix('auth')->name('auth.')->group(function (){
@@ -20,5 +22,20 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::delete('/destroy', [UserController::class, 'destroy'])->name('destroy');
     });
 
-    // TODO: Añadir rutas de Houses y Expenses
+
+    // Houses
+    Route::prefix('houses')->name('houses.')->group(function (){
+        Route::post('/create', [HouseController::class, 'store'])->name('create');
+        Route::post('/join', [HouseController::class, 'join'])->name('join');
+        Route::get('/my-house', [HouseController::class, 'myHouse'])->name('my-house');
+    });
+
+    // Expenses
+    Route::prefix('expenses')->name('expenses.')->group(function (){
+        Route::get('/', [ExpenseController::class, 'index'])->name('index');
+        Route::post('/store', [ExpenseController::class, 'store'])->name('store');
+        Route::get('/show/{id}', [ExpenseController::class, 'show'])->name('show');
+        Route::put('/update/{id}', [ExpenseController::class, 'update'])->name('update');
+        Route::delete('/destroy/{id}', [ExpenseController::class, 'destroy'])->name('destroy');
+    });
 });
