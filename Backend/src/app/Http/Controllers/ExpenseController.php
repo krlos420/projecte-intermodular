@@ -228,4 +228,77 @@ class ExpenseController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Funció per a obtindre estadístiques dels gastos de la casa
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function statistics(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari té una casa assignada
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            // Obtenim els gastos del mes actual
+            $currentMonth = now()->month;
+            $currentYear = now()->year;
+
+            $monthExpenses = Expense::where('house_id', $user->house_id)
+                ->whereMonth('date', $currentMonth)
+                ->whereYear('date', $currentYear)
+                ->with('payer')
+                ->get();
+
+            // Total del mes
+            $totalMonth = $monthExpenses->sum('amount');
+
+            // Total pagat per cada compañero
+            $payerTotals = $monthExpenses->groupBy('payer_id')->map(function ($expenses) {
+                return [
+                    'payer' => $expenses->first()->payer->name,
+                    'total' => $expenses->sum('amount'),
+                    'count' => $expenses->count(),
+                ];
+            })->values();
+
+            // Càlcul de qui deu a qui (repartiment equitatiu)
+            $houseUsers = \App\Models\User::where('house_id', $user->house_id)->count();
+            $perPerson = $houseUsers > 0 ? $totalMonth / $houseUsers : 0;
+
+            $balances = $payerTotals->map(function ($payer) use ($perPerson) {
+                return [
+                    'name' => $payer['payer'],
+                    'paid' => $payer['total'],
+                    'should_pay' => round($perPerson, 2),
+                    'balance' => round($payer['total'] - $perPerson, 2), // Positiu = ha pagat de més
+                ];
+            });
+
+            return response()->json([
+                'status' => 'true',
+                'statistics' => [
+                    'total_month' => round($totalMonth, 2),
+                    'per_person' => round($perPerson, 2),
+                    'payer_totals' => $payerTotals,
+                    'balances' => $balances,
+                    'month' => now()->format('F Y'),
+                ],
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al obtindre les estadístiques',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

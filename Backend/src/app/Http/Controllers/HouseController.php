@@ -19,6 +19,16 @@ class HouseController extends Controller
     public function store(Request $request)
     {
         try {
+            $user = $request->user();
+
+            // Validació: l'usuari ja està en una casa
+            if ($user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Ja estàs en una casa. Surt primer si vols crear una altra.',
+                ], 400);
+            }
+
             // Validem les dades
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -63,6 +73,16 @@ class HouseController extends Controller
     public function join(Request $request)
     {
         try {
+            $user = $request->user();
+
+            // Validació: l'usuari ja està en una casa
+            if ($user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Ja estàs en una casa. Surt primer si vols unir-te a una altra.',
+                ], 400);
+            }
+
             // Validem el codi d'invitació
             $validated = $request->validate([
                 'invite_code' => 'required|string',
@@ -127,6 +147,42 @@ class HouseController extends Controller
             return response()->json([
                 'status' => 'false',
                 'message' => 'Error al obtindre la casa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a eixir d'una casa
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function leave(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari està en una casa
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            // Eliminem la casa de l'usuari
+            $user->house_id = null;
+            $user->save();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Has eixit de la casa correctament',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al eixir de la casa',
                 'error' => $e->getMessage(),
             ], 500);
         }
