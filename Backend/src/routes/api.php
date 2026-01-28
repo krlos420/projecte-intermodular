@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/create', [HouseController::class, 'store'])->name('create');
         Route::post('/join', [HouseController::class, 'join'])->name('join');
         Route::get('/my-house', [HouseController::class, 'myHouse'])->name('my-house');
+        Route::post('/leave', [HouseController::class, 'leave'])->name('leave');
     });
 
     // Expenses
@@ -39,5 +40,6 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::get('/show/{id}', [ExpenseController::class, 'show'])->name('show');
         Route::put('/update/{id}', [ExpenseController::class, 'update'])->name('update');
         Route::delete('/destroy/{id}', [ExpenseController::class, 'destroy'])->name('destroy');
+        Route::get('/statistics', [ExpenseController::class, 'statistics'])->name('statistics');
     });
 });
