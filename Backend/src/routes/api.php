@@ -21,8 +21,7 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::put('/update', [UserController::class, 'update'])->name('update');
         Route::delete('/destroy', [UserController::class, 'destroy'])->name('destroy');
     });
-
-
+    
     // Houses
     Route::prefix('houses')->name('houses.')->group(function (){
         Route::post('/create', [HouseController::class, 'store'])->name('create');
