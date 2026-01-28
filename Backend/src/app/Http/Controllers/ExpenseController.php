@@ -1,0 +1,204 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Expense;
+use Exception;
+
+class ExpenseController extends Controller
+{
+    /**
+     * Funció per a obtindre tots els gastos de la casa de l'usuari
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function index(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari té una casa assignada
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            // Obtenim els gastos de la casa amb la informació del pagador
+            $expenses = Expense::where('house_id', $user->house_id)
+                ->with('payer')
+                ->orderBy('date', 'desc')
+                ->get();
+
+            return response()->json([
+                'status' => 'true',
+                'expenses' => $expenses,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al obtindre els gastos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a crear un nou gasto
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function store(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari té una casa assignada
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            // Validem les dades
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'amount' => 'required|numeric|min:0',
+                'date' => 'required|date',
+            ]);
+
+            // Creem el gasto
+            $expense = Expense::create([
+                'title' => $request->title,
+                'amount' => $request->amount,
+                'payer_id' => $user->id_user,
+                'house_id' => $user->house_id,
+                'date' => $request->date,
+            ]);
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Gasto creat correctament',
+                'expense' => $expense,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al crear el gasto',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a obtindre un gasto específic
+     *
+     * @param numeric $id
+     * @return json
+     */
+    public function show($id)
+    {
+        try {
+            $expense = Expense::with('payer')->find($id);
+
+            if (!$expense) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Gasto no trobat',
+                ], 404);
+            }
+
+            return response()->json([
+                'status' => 'true',
+                'expense' => $expense,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al obtindre el gasto',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a actualitzar un gasto
+     *
+     * @param Request $request
+     * @param numeric $id
+     * @return json
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $expense = Expense::find($id);
+
+            if (!$expense) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Gasto no trobat',
+                ], 404);
+            }
+
+            // Validem les dades
+            $validated = $request->validate([
+                'title' => 'string|max:255',
+                'amount' => 'numeric|min:0',
+                'date' => 'date',
+            ]);
+
+            // Actualitzem el gasto
+            $expense->update($request->only(['title', 'amount', 'date']));
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Gasto actualitzat correctament',
+                'expense' => $expense,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al actualitzar el gasto',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a eliminar un gasto
+     *
+     * @param numeric $id
+     * @return json
+     */
+    public function destroy($id)
+    {
+        try {
+            $expense = Expense::find($id);
+
+            if (!$expense) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Gasto no trobat',
+                ], 404);
+            }
+
+            $expense->delete();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Gasto eliminat correctament',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al eliminar el gasto',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}
