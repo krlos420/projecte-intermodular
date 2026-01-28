@@ -43,10 +43,10 @@ class HouseController extends Controller
             $house = House::create([
                 'name' => $request->name,
                 'invite_code' => $inviteCode,
+                'creator_id' => $user->id_user,
             ]);
 
             // Assignem l'usuari actual a aquesta casa
-            $user = $request->user();
             $user->house_id = $house->id;
             $user->save();
 
@@ -183,6 +183,112 @@ class HouseController extends Controller
             return response()->json([
                 'status' => 'false',
                 'message' => 'Error al eixir de la casa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a eliminar una casa (només el creador)
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function destroy(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari té una casa assignada
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            $house = House::find($user->house_id);
+
+            if (!$house) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Casa no trobada',
+                ], 404);
+            }
+
+            // Validació: només el creador pot eliminar la casa
+            if ($house->creator_id !== $user->id_user) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Només el creador pot eliminar la casa',
+                ], 403);
+            }
+
+            // Eliminem la casa de tots els usuaris
+            User::where('house_id', $house->id)->update(['house_id' => null]);
+
+            // Eliminem la casa
+            $house->delete();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Casa eliminada correctament',
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al eliminar la casa',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Funció per a canviar el nom de la casa
+     *
+     * @param Request $request
+     * @return json
+     */
+    public function updateName(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Comprovem si l'usuari té una casa assignada
+            if (!$user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No estàs en cap casa',
+                ], 404);
+            }
+
+            // Validem el nou nom
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+            ]);
+
+            $house = House::find($user->house_id);
+
+            if (!$house) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'Casa no trobada',
+                ], 404);
+            }
+
+            // Actualitzem el nom
+            $house->name = $request->name;
+            $house->save();
+
+            return response()->json([
+                'status' => 'true',
+                'message' => 'Nom de la casa actualitzat correctament',
+                'house' => $house,
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Error al actualitzar el nom de la casa',
                 'error' => $e->getMessage(),
             ], 500);
         }

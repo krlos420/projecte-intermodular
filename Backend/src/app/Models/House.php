@@ -10,6 +10,7 @@ class House extends Model
     protected $fillable = [
         'name',
         'invite_code',
+        'creator_id',
     ];
 
     // Usuarios que viven en este piso
