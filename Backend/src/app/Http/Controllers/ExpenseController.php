@@ -101,9 +101,10 @@ class ExpenseController extends Controller
      * @param numeric $id
      * @return json
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
+            $user = $request->user();
             $expense = Expense::with('payer')->find($id);
 
             if (!$expense) {
@@ -111,6 +112,14 @@ class ExpenseController extends Controller
                     'status' => 'false',
                     'message' => 'Gasto no trobat',
                 ], 404);
+            }
+
+            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            if ($expense->house_id !== $user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No tens permís per veure aquest gasto',
+                ], 403);
             }
 
             return response()->json([
@@ -136,6 +145,7 @@ class ExpenseController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $user = $request->user();
             $expense = Expense::find($id);
 
             if (!$expense) {
@@ -143,6 +153,14 @@ class ExpenseController extends Controller
                     'status' => 'false',
                     'message' => 'Gasto no trobat',
                 ], 404);
+            }
+
+            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            if ($expense->house_id !== $user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No tens permís per editar aquest gasto',
+                ], 403);
             }
 
             // Validem les dades
@@ -175,9 +193,10 @@ class ExpenseController extends Controller
      * @param numeric $id
      * @return json
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
+            $user = $request->user();
             $expense = Expense::find($id);
 
             if (!$expense) {
@@ -185,6 +204,14 @@ class ExpenseController extends Controller
                     'status' => 'false',
                     'message' => 'Gasto no trobat',
                 ], 404);
+            }
+
+            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            if ($expense->house_id !== $user->house_id) {
+                return response()->json([
+                    'status' => 'false',
+                    'message' => 'No tens permís per eliminar aquest gasto',
+                ], 403);
             }
 
             $expense->delete();
