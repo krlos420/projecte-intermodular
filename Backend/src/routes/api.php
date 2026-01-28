@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/join', [HouseController::class, 'join'])->name('join');
         Route::get('/my-house', [HouseController::class, 'myHouse'])->name('my-house');
         Route::post('/leave', [HouseController::class, 'leave'])->name('leave');
+        Route::put('/update-name', [HouseController::class, 'updateName'])->name('update-name');
+        Route::delete('/destroy', [HouseController::class, 'destroy'])->name('destroy');
     });
 
     // Expenses
