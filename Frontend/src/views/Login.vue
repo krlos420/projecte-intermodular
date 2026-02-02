@@ -16,6 +16,7 @@
         />
         <button type="submit">Iniciar Sesión</button>
         <p v-if="error" class="error">{{ error }}</p>
+        <p>¿No tienes cuenta? <router-link to="/register">Regístrate</router-link></p>
       </form>
     </div>
   </template>
