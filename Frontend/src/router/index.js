@@ -3,6 +3,8 @@ import Login from '../views/Login.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Register from '../views/Register.vue'
 import CreateJoinHouse from '../views/CreateJoinHouse.vue'
+import Estadisticas from '../views/Estadisticas.vue'
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
@@ -30,6 +32,12 @@ const router = createRouter({
             path: '/create-join-house',
             name: 'CreateJoinHouse',
             component: CreateJoinHouse,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/estadisticas',
+            name: 'Estadisticas',
+            component: Estadisticas,
             meta: { requiresAuth: true }
         }
     ]

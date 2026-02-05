@@ -36,8 +36,13 @@
     </div>
 
     <div class="seccion-gastos">
-      <h2>Gastos Recientes</h2>
-      <button @click="abrirModalNuevo" class="btn-agregar">+ Añadir Gasto</button>
+      <div class="header-gastos">
+        <h2>Gastos Recientes</h2>
+        <div class="botones-header">
+          <button @click="irEstadisticas" class="btn-estadisticas">📊 Ver Estadísticas</button>
+          <button @click="abrirModalNuevo" class="btn-agregar">+ Añadir Gasto</button>
+        </div>
+      </div>
       
       <div v-if="gastos.length === 0" class="vacio">
         No hay gastos todavía
@@ -229,7 +234,11 @@ export default {
       }
     }
 
-    const cerrarSesion = () => {
+    const irEstadisticas = () => {
+      router.push('/estadisticas')
+    }
+
+    const cerrarSesion= () => {
       localStorage.removeItem('token')
       router.push('/login')
     }
@@ -251,6 +260,7 @@ export default {
       eliminarGasto,
       copiarCodigo,
       salirDeCasa,
+      irEstadisticas,
       cerrarSesion
     }
   }
@@ -395,9 +405,45 @@ header {
   color: white;
   border: none;
   cursor: pointer;
-  margin: 10px 0;
   border-radius: 5px;
 }
+
+.btn-agregar:hover {
+  background: #3aa876;
+}
+
+.header-gastos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.header-gastos h2 {
+  margin: 0;
+}
+
+.botones-header {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-estadisticas {
+  padding: 10px 20px;
+  background: #ff9800;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.btn-estadisticas:hover {
+  background: #f57c00;
+}
+
 .lista-gastos {
   margin-top: 20px;
 }
