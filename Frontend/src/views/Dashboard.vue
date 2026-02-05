@@ -7,7 +7,7 @@
 
     <div class="seccion-gastos">
       <h2>Gastos Recientes</h2>
-      <button @click="mostrarFormulario = true" class="btn-agregar">+ Añadir Gasto</button>
+      <button @click="abrirModalNuevo" class="btn-agregar">+ Añadir Gasto</button>
       
       <div v-if="gastos.length === 0" class="vacio">
         No hay gastos todavía
@@ -15,25 +15,31 @@
 
       <div v-else class="lista-gastos">
         <div v-for="gasto in gastos" :key="gasto.id" class="item-gasto">
-          <div>
+          <div class="info-gasto">
             <strong>{{ gasto.title }}</strong>
             <p>{{ gasto.date }} - {{ gasto.payer?.name }}</p>
           </div>
-          <div class="cantidad">{{ gasto.amount }}€</div>
+          <div class="acciones-gasto">
+            <div class="cantidad">{{ gasto.amount }}€</div>
+            <button @click="abrirModalEditar(gasto)" class="btn-editar">✏️</button>
+            <button @click="eliminarGasto(gasto.id)" class="btn-eliminar">🗑️</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal añadir gasto -->
-    <div v-if="mostrarFormulario" class="modal">
+    <!-- Modal añadir/editar gasto -->
+    <div v-if="mostrarFormulario" class="modal" @click.self="cerrarModal">
       <div class="contenido-modal">
-        <h3>Añadir Gasto</h3>
-        <input v-model="nuevoGasto.title" placeholder="Título" />
-        <input v-model="nuevoGasto.amount" type="number" placeholder="Cantidad (€)" />
-        <input v-model="nuevoGasto.date" type="date" />
+        <h3>{{ modoEdicion ? 'Editar Gasto' : 'Añadir Gasto' }}</h3>
+        <input v-model="gastoActual.title" placeholder="Título" />
+        <input v-model="gastoActual.amount" type="number" step="0.01" placeholder="Cantidad (€)" />
+        <input v-model="gastoActual.date" type="date" />
         <div class="acciones">
-          <button @click="guardarGasto" class="btn-guardar">Guardar</button>
-          <button @click="mostrarFormulario = false" class="btn-cancelar">Cancelar</button>
+          <button @click="guardarGasto" class="btn-guardar">
+            {{ modoEdicion ? 'Actualizar' : 'Guardar' }}
+          </button>
+          <button @click="cerrarModal" class="btn-cancelar">Cancelar</button>
         </div>
       </div>
     </div>
@@ -51,7 +57,9 @@ export default {
     const gastos = ref([])
     const nombreCasa = ref('')
     const mostrarFormulario = ref(false)
-    const nuevoGasto = ref({
+    const modoEdicion = ref(false)
+    const gastoActual = ref({
+      id: null,
       title: '',
       amount: '',
       date: new Date().toISOString().split('T')[0]
@@ -75,16 +83,93 @@ export default {
       }
     }
 
+    const abrirModalNuevo = () => {
+      modoEdicion.value = false
+      gastoActual.value = {
+        id: null,
+        title: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0]
+      }
+      mostrarFormulario.value = true
+    }
+
+    const abrirModalEditar = (gasto) => {
+      modoEdicion.value = true
+      gastoActual.value = {
+        id: gasto.id,
+        title: gasto.title,
+        amount: gasto.amount,
+        date: gasto.date
+      }
+      mostrarFormulario.value = true
+    }
+
+    const cerrarModal = () => {
+      mostrarFormulario.value = false
+      modoEdicion.value = false
+      gastoActual.value = {
+        id: null,
+        title: '',
+        amount: '',
+        date: new Date().toISOString().split('T')[0]
+      }
+    }
+
     const guardarGasto = async () => {
       try {
-        const response = await api.post('/expenses/store', nuevoGasto.value)
-        if (response.data.status === 'true') {
-          gastos.value.unshift(response.data.expense)
-          mostrarFormulario.value = false
-          nuevoGasto.value = { title: '', amount: '', date: new Date().toISOString().split('T')[0] }
+        // Validación básica
+        if (!gastoActual.value.title || !gastoActual.value.amount || gastoActual.value.amount <= 0) {
+          alert('Por favor, completa todos los campos correctamente')
+          return
+        }
+
+        if (modoEdicion.value) {
+          // Actualizar gasto existente
+          const response = await api.put(`/expenses/update/${gastoActual.value.id}`, {
+            title: gastoActual.value.title,
+            amount: gastoActual.value.amount,
+            date: gastoActual.value.date
+          })
+          
+          if (response.data.status === 'true') {
+            // Actualizar en la lista
+            const index = gastos.value.findIndex(g => g.id === gastoActual.value.id)
+            if (index !== -1) {
+              gastos.value[index] = { ...gastos.value[index], ...response.data.expense }
+            }
+            cerrarModal()
+          }
+        } else {
+          // Crear nuevo gasto
+          const response = await api.post('/expenses/store', {
+            title: gastoActual.value.title,
+            amount: gastoActual.value.amount,
+            date: gastoActual.value.date
+          })
+          
+          if (response.data.status === 'true') {
+            gastos.value.unshift(response.data.expense)
+            cerrarModal()
+          }
         }
       } catch (err) {
-        alert('Error al crear gasto')
+        alert('Error al guardar el gasto: ' + (err.response?.data?.message || err.message))
+      }
+    }
+
+    const eliminarGasto = async (id) => {
+      if (!confirm('¿Estás seguro de eliminar este gasto?')) {
+        return
+      }
+
+      try {
+        const response = await api.delete(`/expenses/destroy/${id}`)
+        if (response.data.status === 'true') {
+          gastos.value = gastos.value.filter(g => g.id !== id)
+        }
+      } catch (err) {
+        alert('Error al eliminar el gasto: ' + (err.response?.data?.message || err.message))
       }
     }
 
@@ -99,8 +184,13 @@ export default {
       gastos,
       nombreCasa,
       mostrarFormulario,
-      nuevoGasto,
+      modoEdicion,
+      gastoActual,
+      abrirModalNuevo,
+      abrirModalEditar,
+      cerrarModal,
       guardarGasto,
+      eliminarGasto,
       cerrarSesion
     }
   }
@@ -142,15 +232,59 @@ header {
 .item-gasto {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding: 15px;
   border: 1px solid #ddd;
   margin: 10px 0;
   border-radius: 8px;
+  background: white;
+}
+.info-gasto {
+  flex: 1;
+}
+.info-gasto strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1.1em;
+}
+.info-gasto p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9em;
+}
+.acciones-gasto {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .cantidad {
-  font-size: 1.2em;
+  font-size: 1.3em;
   font-weight: bold;
   color: #42b983;
+  margin-right: 10px;
+}
+.btn-editar,
+.btn-eliminar {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2em;
+  transition: transform 0.2s;
+}
+.btn-editar {
+  background: #ffc107;
+}
+.btn-editar:hover {
+  transform: scale(1.1);
+  background: #ffb300;
+}
+.btn-eliminar {
+  background: #f44336;
+}
+.btn-eliminar:hover {
+  transform: scale(1.1);
+  background: #d32f2f;
 }
 .modal {
   position: fixed;
@@ -162,12 +296,18 @@ header {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 .contenido-modal {
   background: white;
   padding: 30px;
   border-radius: 10px;
   width: 400px;
+  max-width: 90%;
+}
+.contenido-modal h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 .contenido-modal input {
   width: 100%;
@@ -175,6 +315,7 @@ header {
   margin: 10px 0;
   border: 1px solid #ddd;
   border-radius: 5px;
+  box-sizing: border-box;
 }
 .acciones {
   display: flex;
@@ -190,6 +331,9 @@ header {
   cursor: pointer;
   border-radius: 5px;
 }
+.btn-guardar:hover {
+  background: #3aa876;
+}
 .btn-cancelar {
   flex: 1;
   padding: 10px;
@@ -198,9 +342,14 @@ header {
   cursor: pointer;
   border-radius: 5px;
 }
+.btn-cancelar:hover {
+  background: #bbb;
+}
 .vacio {
   text-align: center;
   color: #999;
   padding: 40px;
+  background: #f9f9f9;
+  border-radius: 8px;
 }
 </style>
