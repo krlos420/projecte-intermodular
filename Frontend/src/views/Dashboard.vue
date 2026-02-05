@@ -5,6 +5,36 @@
       <button @click="cerrarSesion" class="btn-salir">Cerrar Sesión</button>
     </header>
 
+    <!-- Información de la casa -->
+    <div v-if="infoCasa" class="seccion-info-casa">
+      <div class="info-header">
+        <h2>🏠 Información de la Casa</h2>
+        <button @click="mostrarInfoCasa = !mostrarInfoCasa" class="btn-toggle">
+          {{ mostrarInfoCasa ? '▼' : '▶' }}
+        </button>
+      </div>
+      
+      <div v-if="mostrarInfoCasa" class="info-contenido">
+        <div class="info-item">
+          <strong>Código de invitación:</strong>
+          <span class="codigo-invitacion">{{ infoCasa.invite_code }}</span>
+          <button @click="copiarCodigo" class="btn-copiar">📋 Copiar</button>
+        </div>
+        
+        <div class="info-item">
+          <strong>Compañeros de piso:</strong>
+          <ul class="lista-companeros">
+            <li v-for="companero in infoCasa.users" :key="companero.id_user">
+              {{ companero.name }}
+              <span v-if="companero.id_user === infoCasa.creator_id" class="badge-creador">👑 Creador</span>
+            </li>
+          </ul>
+        </div>
+
+        <button @click="salirDeCasa" class="btn-salir-casa">🚪 Salir de la casa</button>
+      </div>
+    </div>
+
     <div class="seccion-gastos">
       <h2>Gastos Recientes</h2>
       <button @click="abrirModalNuevo" class="btn-agregar">+ Añadir Gasto</button>
@@ -56,6 +86,8 @@ export default {
     const router = useRouter()
     const gastos = ref([])
     const nombreCasa = ref('')
+    const infoCasa = ref(null)
+    const mostrarInfoCasa = ref(false)
     const mostrarFormulario = ref(false)
     const modoEdicion = ref(false)
     const gastoActual = ref({
@@ -69,6 +101,7 @@ export default {
       try {
         const casaRes = await api.get('/houses/my-house')
         if (casaRes.data.status === 'true') {
+          infoCasa.value = casaRes.data.house
           nombreCasa.value = casaRes.data.house.name
         }
 
@@ -173,6 +206,29 @@ export default {
       }
     }
 
+    const copiarCodigo = () => {
+      if (infoCasa.value?.invite_code) {
+        navigator.clipboard.writeText(infoCasa.value.invite_code)
+        alert('Código copiado al portapapeles: ' + infoCasa.value.invite_code)
+      }
+    }
+
+    const salirDeCasa = async () => {
+      if (!confirm('¿Estás seguro de salir de esta casa?')) {
+        return
+      }
+
+      try {
+        const response = await api.post('/houses/leave')
+        if (response.data.status === 'true') {
+          alert('Has salido de la casa correctamente')
+          router.push('/create-join-house')
+        }
+      } catch (err) {
+        alert('Error al salir de la casa: ' + (err.response?.data?.message || err.message))
+      }
+    }
+
     const cerrarSesion = () => {
       localStorage.removeItem('token')
       router.push('/login')
@@ -183,6 +239,8 @@ export default {
     return {
       gastos,
       nombreCasa,
+      infoCasa,
+      mostrarInfoCasa,
       mostrarFormulario,
       modoEdicion,
       gastoActual,
@@ -191,6 +249,8 @@ export default {
       cerrarModal,
       guardarGasto,
       eliminarGasto,
+      copiarCodigo,
+      salirDeCasa,
       cerrarSesion
     }
   }
@@ -217,6 +277,118 @@ header {
   cursor: pointer;
   border-radius: 5px;
 }
+
+.seccion-info-casa {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.info-header h2 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.btn-toggle {
+  background: transparent;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+.info-contenido {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.info-item {
+  margin: 15px 0;
+}
+
+.info-item strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.codigo-invitacion {
+  background: #fff;
+  padding: 8px 12px;
+  border: 2px dashed #42b983;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #42b983;
+  margin-right: 10px;
+}
+
+.btn-copiar {
+  padding: 8px 15px;
+  background: #42b983;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-copiar:hover {
+  background: #3aa876;
+}
+
+.lista-companeros {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.lista-companeros li {
+  padding: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge-creador {
+  background: #ffc107;
+  color: #000;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.btn-salir-casa {
+  width: 100%;
+  padding: 12px;
+  background: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.btn-salir-casa:hover {
+  background: #e64a19;
+}
+
 .btn-agregar {
   padding: 10px 20px;
   background: #42b983;
