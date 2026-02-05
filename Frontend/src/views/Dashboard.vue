@@ -44,7 +44,9 @@
         </div>
       </div>
       
-      <div v-if="gastos.length === 0" class="vacio">
+      <Spinner v-if="cargando" mensaje="Cargando gastos..." />
+      
+      <div v-else-if="gastos.length === 0" class="vacio">
         No hay gastos todavía
       </div>
 
@@ -85,8 +87,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import Spinner from '../components/Spinner.vue'
 
 export default {
+  components: {
+    Spinner
+  },
   setup() {
     const router = useRouter()
     const gastos = ref([])
@@ -95,6 +101,7 @@ export default {
     const mostrarInfoCasa = ref(false)
     const mostrarFormulario = ref(false)
     const modoEdicion = ref(false)
+    const cargando = ref(true)
     const gastoActual = ref({
       id: null,
       title: '',
@@ -118,6 +125,8 @@ export default {
         if (err.response?.status === 404) {
           router.push('/create-join-house')
         }
+      } finally {
+        cargando.value = false
       }
     }
 
@@ -255,6 +264,7 @@ export default {
       mostrarInfoCasa,
       mostrarFormulario,
       modoEdicion,
+      cargando,
       gastoActual,
       abrirModalNuevo,
       abrirModalEditar,

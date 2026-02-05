@@ -5,9 +5,7 @@
       <button @click="volverDashboard" class="btn-volver">← Volver</button>
     </header>
 
-    <div v-if="cargando" class="cargando">
-      Cargando estadísticas...
-    </div>
+    <Spinner v-if="cargando" mensaje="Cargando estadísticas..." />
 
     <div v-else-if="estadisticas" class="contenido">
       <!-- Resumen general -->
@@ -103,8 +101,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import Spinner from '../components/Spinner.vue'
 
 export default {
+  components: {
+    Spinner
+  },
   setup() {
     const router = useRouter()
     const estadisticas = ref(null)
