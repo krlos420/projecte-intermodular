@@ -158,7 +158,7 @@ export default {
       try {
         // Validación básica
         if (!gastoActual.value.title || !gastoActual.value.amount || gastoActual.value.amount <= 0) {
-          alert('Por favor, completa todos los campos correctamente')
+          window.mostrarNotificacion('Por favor, completa todos los campos correctamente', 'advertencia')
           return
         }
 
@@ -176,6 +176,7 @@ export default {
             if (index !== -1) {
               gastos.value[index] = { ...gastos.value[index], ...response.data.expense }
             }
+            window.mostrarNotificacion('Gasto actualizado correctamente', 'exito')
             cerrarModal()
           }
         } else {
@@ -188,11 +189,12 @@ export default {
           
           if (response.data.status === 'true') {
             gastos.value.unshift(response.data.expense)
+            window.mostrarNotificacion('Gasto añadido correctamente', 'exito')
             cerrarModal()
           }
         }
       } catch (err) {
-        alert('Error al guardar el gasto: ' + (err.response?.data?.message || err.message))
+        window.mostrarNotificacion('Error al guardar el gasto: ' + (err.response?.data?.message || err.message), 'error')
       }
     }
 
@@ -205,16 +207,17 @@ export default {
         const response = await api.delete(`/expenses/destroy/${id}`)
         if (response.data.status === 'true') {
           gastos.value = gastos.value.filter(g => g.id !== id)
+          window.mostrarNotificacion('Gasto eliminado correctamente', 'exito')
         }
       } catch (err) {
-        alert('Error al eliminar el gasto: ' + (err.response?.data?.message || err.message))
+        window.mostrarNotificacion('Error al eliminar el gasto: ' + (err.response?.data?.message || err.message), 'error')
       }
     }
 
     const copiarCodigo = () => {
       if (infoCasa.value?.invite_code) {
         navigator.clipboard.writeText(infoCasa.value.invite_code)
-        alert('Código copiado al portapapeles: ' + infoCasa.value.invite_code)
+        window.mostrarNotificacion('Código copiado: ' + infoCasa.value.invite_code, 'exito')
       }
     }
 
@@ -226,11 +229,11 @@ export default {
       try {
         const response = await api.post('/houses/leave')
         if (response.data.status === 'true') {
-          alert('Has salido de la casa correctamente')
+          window.mostrarNotificacion('Has salido de la casa correctamente', 'exito')
           router.push('/create-join-house')
         }
       } catch (err) {
-        alert('Error al salir de la casa: ' + (err.response?.data?.message || err.message))
+        window.mostrarNotificacion('Error al salir de la casa: ' + (err.response?.data?.message || err.message), 'error')
       }
     }
 
