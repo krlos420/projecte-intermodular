@@ -156,68 +156,87 @@ export default {
 
 <style scoped>
 .contenedor-estadisticas {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
 }
 
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 header h1 {
   margin: 0;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-size: 1.8em;
 }
 
 .btn-volver {
-  padding: 10px 20px;
-  background: #42b983;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #42b983, #35a372);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .btn-volver:hover {
-  background: #3aa876;
-}
-
-.cargando {
-  text-align: center;
-  padding: 50px;
-  font-size: 1.2em;
-  color: #666;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
 }
 
 .error {
   text-align: center;
-  padding: 50px;
+  padding: 60px;
   color: #f44336;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-size: 1.1em;
 }
 
+/* Sección Resumen */
 .seccion-resumen {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
 }
 
 .card-resumen {
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 20px;
+  border: none;
+  border-radius: 16px;
+  padding: 25px;
   display: flex;
   align-items: center;
-  gap: 15px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  gap: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card-resumen:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
 }
 
 .card-resumen .icono {
-  font-size: 3em;
+  font-size: 3.2em;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .card-resumen .info {
@@ -226,135 +245,260 @@ header h1 {
 
 .card-resumen .label {
   margin: 0;
-  color: #666;
+  color: #777;
   font-size: 0.9em;
+  font-weight: 500;
 }
 
 .card-resumen .valor {
-  margin: 5px 0 0 0;
-  font-size: 1.8em;
+  margin: 8px 0 0 0;
+  font-size: 2em;
   font-weight: bold;
-  color: #42b983;
+  background: linear-gradient(135deg, #42b983, #35a372);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* Secciones */
 .seccion {
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
+  border: none;
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
 .seccion h2 {
   margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 1.4em;
+  margin-bottom: 25px;
+  font-size: 1.5em;
+  color: #333;
 }
 
+/* Lista de Pagos */
 .lista-pagos {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
 }
 
 .item-pago {
   display: grid;
-  grid-template-columns: 150px 1fr 100px;
+  grid-template-columns: 180px 1fr 120px;
   align-items: center;
-  gap: 15px;
+  gap: 18px;
+  padding: 12px;
+  background: linear-gradient(135deg, #fafafa, #f5f5f5);
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.item-pago:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .nombre-usuario {
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 1.05em;
+  color: #333;
 }
 
 .barra-progreso {
-  background: #e0e0e0;
-  border-radius: 10px;
-  height: 25px;
+  background: #e8ecf1;
+  border-radius: 12px;
+  height: 28px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
 }
 
 .barra-relleno {
   background: linear-gradient(90deg, #42b983, #35a372);
   height: 100%;
-  transition: width 0.3s ease;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(66, 185, 131, 0.3);
 }
 
 .cantidad-pagada {
   text-align: right;
   font-weight: bold;
-  font-size: 1.1em;
-  color: #42b983;
+  font-size: 1.2em;
+  background: linear-gradient(135deg, #42b983, #35a372);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
+/* Lista de Balances */
 .lista-balances {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
 }
 
 .item-balance {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  border-radius: 8px;
-  border: 2px solid #ddd;
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.item-balance:hover {
+  transform: translateY(-2px);
 }
 
 .item-balance.positivo {
-  background: #e8f5e9;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
   border-color: #4caf50;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
+}
+
+.item-balance.positivo:hover {
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.25);
 }
 
 .item-balance.negativo {
-  background: #ffebee;
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
   border-color: #f44336;
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.15);
+}
+
+.item-balance.negativo:hover {
+  box-shadow: 0 6px 16px rgba(244, 67, 54, 0.25);
 }
 
 .info-balance strong {
   display: block;
-  margin-bottom: 5px;
-  font-size: 1.1em;
+  margin-bottom: 8px;
+  font-size: 1.15em;
+  color: #333;
 }
 
 .texto-balance {
   margin: 0;
   color: #666;
+  font-size: 0.95em;
 }
 
 .monto {
   font-weight: bold;
-  font-size: 1.1em;
+  font-size: 1.2em;
 }
 
 .item-balance.positivo .monto {
-  color: #4caf50;
+  color: #2e7d32;
 }
 
 .item-balance.negativo .monto {
-  color: #f44336;
+  color: #c62828;
 }
 
 .indicador-balance {
-  font-size: 2em;
+  font-size: 2.5em;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .vacio {
   text-align: center;
   color: #999;
-  padding: 30px;
+  padding: 50px 30px;
+  background: linear-gradient(135deg, #fafafa, #f5f5f5);
+  border-radius: 12px;
+  font-size: 1.05em;
 }
 
-@media (max-width: 600px) {
+/* Responsive para tablets */
+@media (max-width: 768px) {
+  .contenedor-estadisticas {
+    padding: 20px 15px;
+  }
+  
+  header {
+    padding: 15px;
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  header h1 {
+    font-size: 1.5em;
+  }
+  
+  .seccion-resumen {
+    grid-template-columns: 1fr;
+  }
+  
   .item-pago {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
+    padding: 16px;
   }
   
   .cantidad-pagada {
     text-align: left;
+  }
+  
+  .item-balance {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 480px) {
+  .contenedor-estadisticas {
+    padding: 15px 10px;
+  }
+  
+  header h1 {
+    font-size: 1.3em;
+  }
+  
+  .btn-volver {
+    padding: 10px 20px;
+    font-size: 0.95em;
+  }
+  
+  .seccion {
+    padding: 20px;
+  }
+  
+  .card-resumen {
+    padding: 20px;
+  }
+  
+  .card-resumen .icono {
+    font-size: 2.5em;
+  }
+  
+  .card-resumen .valor {
+    font-size: 1.6em;
+  }
+  
+  .seccion h2 {
+    font-size: 1.3em;
+  }
+  
+  .nombre-usuario {
+    font-size: 1em;
+  }
+  
+  .barra-progreso {
+    height: 24px;
+  }
+  
+  .cantidad-pagada {
+    font-size: 1.1em;
+  }
+  
+  .indicador-balance {
+    font-size: 2em;
   }
 }
 </style>
