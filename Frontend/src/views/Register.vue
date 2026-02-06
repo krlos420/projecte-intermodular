@@ -2,10 +2,54 @@
   <div class="contenedor-registro">
     <h1>Registrarse - Comp-Together</h1>
     <form @submit.prevent="registrarUsuario">
-      <input v-model="nombre" type="text" placeholder="Nombre" required />
-      <input v-model="correo" type="email" placeholder="Email" required />
-      <input v-model="telefono" type="text" placeholder="Teléfono" required />
-      <input v-model="contrasena" type="password" placeholder="Contraseña" required />
+      <div class="campo">
+        <input 
+          v-model="nombre" 
+          type="text" 
+          placeholder="Nombre" 
+          :class="{ 'input-error': erroresValidacion.nombre }"
+          @blur="validarNombre"
+          required 
+        />
+        <span v-if="erroresValidacion.nombre" class="mensaje-error">{{ erroresValidacion.nombre }}</span>
+      </div>
+
+      <div class="campo">
+        <input 
+          v-model="correo" 
+          type="email" 
+          placeholder="Email" 
+          :class="{ 'input-error': erroresValidacion.correo }"
+          @blur="validarEmail"
+          required 
+        />
+        <span v-if="erroresValidacion.correo" class="mensaje-error">{{ erroresValidacion.correo }}</span>
+      </div>
+
+      <div class="campo">
+        <input 
+          v-model="telefono" 
+          type="text" 
+          placeholder="Teléfono" 
+          :class="{ 'input-error': erroresValidacion.telefono }"
+          @blur="validarTelefono"
+          required 
+        />
+        <span v-if="erroresValidacion.telefono" class="mensaje-error">{{ erroresValidacion.telefono }}</span>
+      </div>
+
+      <div class="campo">
+        <input 
+          v-model="contrasena" 
+          type="password" 
+          placeholder="Contraseña (mínimo 5 caracteres)" 
+          :class="{ 'input-error': erroresValidacion.contrasena }"
+          @blur="validarContrasena"
+          required 
+        />
+        <span v-if="erroresValidacion.contrasena" class="mensaje-error">{{ erroresValidacion.contrasena }}</span>
+      </div>
+
       <button type="submit">Registrarse</button>
       <p v-if="error" class="error">{{ error }}</p>
       <p v-if="exito" class="exito">{{ exito }}</p>
@@ -15,7 +59,7 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 
@@ -28,8 +72,66 @@ export default {
     const contrasena = ref('')
     const error = ref('')
     const exito = ref('')
+    
+    const erroresValidacion = reactive({
+      nombre: '',
+      correo: '',
+      telefono: '',
+      contrasena: ''
+    })
+
+    const validarNombre = () => {
+      if (nombre.value.trim().length < 2) {
+        erroresValidacion.nombre = 'El nombre debe tener al menos 2 caracteres'
+        return false
+      }
+      erroresValidacion.nombre = ''
+      return true
+    }
+
+    const validarEmail = () => {
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!regex.test(correo.value)) {
+        erroresValidacion.correo = 'Email inválido'
+        return false
+      }
+      erroresValidacion.correo = ''
+      return true
+    }
+
+    const validarTelefono = () => {
+      const regex = /^[0-9]{9,15}$/
+      if (!regex.test(telefono.value.trim())) {
+        erroresValidacion.telefono = 'Teléfono debe tener entre 9 y 15 dígitos'
+        return false
+      }
+      erroresValidacion.telefono = ''
+      return true
+    }
+
+    const validarContrasena = () => {
+      if (contrasena.value.length < 5) {
+        erroresValidacion.contrasena = 'La contraseña debe tener al menos 5 caracteres'
+        return false
+      }
+      erroresValidacion.contrasena = ''
+      return true
+    }
 
     const registrarUsuario = async () => {
+      // Validar todos los campos antes de enviar
+      const nombreValido = validarNombre()
+      const emailValido = validarEmail()
+      const telefonoValido = validarTelefono()
+      const contrasenaValida = validarContrasena()
+
+      if (!nombreValido || !emailValido || !telefonoValido || !contrasenaValida) {
+        error.value = 'Por favor, corrige los errores antes de continuar'
+        return
+      }
+
+      error.value = ''
+
       try {
         const response = await api.post('/auth/register', {
           name: nombre.value,
@@ -51,7 +153,20 @@ export default {
       }
     }
 
-    return { nombre, correo, telefono, contrasena, error, exito, registrarUsuario }
+    return { 
+      nombre, 
+      correo, 
+      telefono, 
+      contrasena, 
+      error, 
+      exito, 
+      erroresValidacion,
+      validarNombre,
+      validarEmail,
+      validarTelefono,
+      validarContrasena,
+      registrarUsuario 
+    }
   }
 }
 </script>
@@ -82,6 +197,12 @@ form {
   gap: 15px;
 }
 
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 input {
   width: 100%;
   padding: 14px 16px;
@@ -96,6 +217,30 @@ input:focus {
   outline: none;
   border-color: #42b983;
   box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+}
+
+input.input-error {
+  border-color: #f44336;
+  background: #ffebee;
+}
+
+input.input-error:focus {
+  border-color: #f443 36;
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
+}
+
+.mensaje-error {
+  color: #f44336;
+  font-size: 0.85em;
+  padding-left: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mensaje-error::before {
+  content: '⚠️';
+  font-size: 0.9em;
 }
 
 button {
