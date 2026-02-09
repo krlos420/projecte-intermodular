@@ -54,6 +54,19 @@ class ExpenseController extends Controller
      */
     public function store(Request $request)
     {
+        $validatedData = $request->validate([
+            'title' => 'required|string|min:3|max:200',
+            'amount' => 'required|numeric|min:0.01|max:999999.99',
+            'date' => 'required|date|before_or_equal:today'
+        ], [
+            'title.required' => 'El títol és obligatori',
+            'title.min' => 'El títol ha de tindre almenys 3 caràcters',
+            'amount.required' => 'La quantitat és obligatòria',
+            'amount.min' => 'La quantitat ha de ser major que 0',
+            'amount.numeric' => 'La quantitat ha de ser un número',
+            'date.required' => 'La data és obligatòria',
+            'date.before_or_equal' => 'La data no pot ser en el futur'
+        ]);
         try {
             $user = $request->user();
 
@@ -144,6 +157,18 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validatedData = $request->validate([
+            'title' => 'required|string|min:3|max:200',
+            'amount' => 'required|numeric|min:0.01|max:999999.99',
+            'date' => 'required|date|before_or_equal:today'
+        ], [
+            'title.required' => 'El títol és obligatori',
+            'title.min' => 'El títol ha de tindre almenys 3 caràcters',
+            'amount.required' => 'La quantitat és obligatòria',
+            'amount.min' => 'La quantitat ha de ser major que 0',
+            'date.before_or_equal' => 'La data no pot ser en el futur'
+        ]);
+
         try {
             $user = $request->user();
             $expense = Expense::find($id);

@@ -18,6 +18,12 @@ class HouseController extends Controller
      */
     public function store(Request $request)
     {
+        $validatedData = $request->validate([
+            'name' => 'required|string|min:3|max:100'
+        ], [
+            'name.required' => 'El nom de la casa és obligatori',
+            'name.min' => 'El nom ha de tindre almenys 3 caràcters'
+        ]);
         try {
             $user = $request->user();
 
@@ -72,6 +78,12 @@ class HouseController extends Controller
      */
     public function join(Request $request)
     {
+        $validatedData = $request->validate([
+            'invite_code' => 'required|string|size:6'
+        ], [
+            'invite_code.required' => 'El codi de invitació és obligatori',
+            'invite_code.size' => 'El codi ha de tindre exactament 6 caràcters'
+        ]);
         try {
             $user = $request->user();
 
