@@ -20,15 +20,32 @@ class AuthController extends Controller
      */
     public function createUser(UserRequest $request)
     {
+        $validatedData = $request->validate([
+            'name'=>'required|string|min:2|max:100',
+            'email'=>'required|email|unique:users,email|max:255',
+            'phone'=>'required|string|regex:/^[0-9]{9-15}$/',
+            'password'=>'required|string|min:8|max:50',
+            'registration_date'=>'required|date'
+        ],[
+            'name.required'=>'El nom es obligatori',
+            'name.min'=>'El nom ha de tindre almenys 2 caracters',
+            'email.required'=>'El email es obligatori',
+            'email.email'=>'Format de correu invàlid',
+            'email.unique'=>'Este correu ja està registrat',
+            'phone.required'=>'El telefon es obligatori',
+            'phone.regex'=> 'El telefon ha de tindre entre 9 i 15 digits',
+            'password.required'=>'La contrasenya es obligatoria',
+            'password.min'=>'La conrasenya ha de tindre almenys 8 caracters'
+        ]);
         try {
             // Creació del usuari mitjançant les dades introduides pel formulari
             $user = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'registration_date' => $request->registration_date,
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                    'phone' => $validatedData['phone'],
+                    'registration_date' => $validatedData['registration_date'],
                     // Xifra la contrasenya per a que no siga una contrasenya en texet pla
-                    'password' => Hash::make($request->password),
+                    'password' => Hash::make($validatedData['password']),
                 ]);
             
             // Creem el token a partir de les dades de l'usuari
@@ -62,6 +79,15 @@ class AuthController extends Controller
      */
     public function loginUser(LoginUserRequest $request)
     {
+        $validatedData = $request->validate([
+            'email'=>'required|email',
+            'password'=>'required|string|min:5'
+        ],[
+            'email.required'=> 'El correu es obligatori',
+            'email.email'=>'Format de correu invàlid',
+            'password.required'=>'La contrasenya es obligatoria'
+
+        ]);
         try {
             // Condicional d'error si l'usuari s'enganya al posar les credencials
             if (!Auth::attempt($request->only(['email', 'password']))) {
