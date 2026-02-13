@@ -79,7 +79,7 @@ class HouseController extends Controller
     public function join(Request $request)
     {
         $validatedData = $request->validate([
-            'invite_code' => 'required|string|size:6'
+            'invite_code' => 'required|string|size:8'
         ], [
             'invite_code.required' => 'El codi de invitació és obligatori',
             'invite_code.size' => 'El codi ha de tindre exactament 6 caràcters'
