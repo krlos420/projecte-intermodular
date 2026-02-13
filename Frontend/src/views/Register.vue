@@ -42,7 +42,7 @@
         <input 
           v-model="contrasena" 
           type="password" 
-          placeholder="Contraseña (mínimo 5 caracteres)" 
+          placeholder="Contraseña (mínimo 8 caracteres)" 
           :class="{ 'input-error': erroresValidacion.contrasena }"
           @blur="validarContrasena"
           required 
@@ -110,8 +110,8 @@ export default {
     }
 
     const validarContrasena = () => {
-      if (contrasena.value.length < 5) {
-        erroresValidacion.contrasena = 'La contraseña debe tener al menos 5 caracteres'
+      if (contrasena.value.length < 8) {
+        erroresValidacion.contrasena = 'La contraseña debe tener al menos 8 caracteres'
         return false
       }
       erroresValidacion.contrasena = ''
