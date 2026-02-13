@@ -27,15 +27,15 @@ class AuthController extends Controller
             'password'=>'required|string|min:8|max:50',
             'registration_date'=>'required|date'
         ],[
-            'name.required'=>'El nom es obligatori',
-            'name.min'=>'El nom ha de tindre almenys 2 caracters',
-            'email.required'=>'El email es obligatori',
-            'email.email'=>'Format de correu invàlid',
-            'email.unique'=>'Este correu ja està registrat',
-            'phone.required'=>'El telefon es obligatori',
-            'phone.regex'=> 'El telefon ha de tindre entre 9 i 15 digits',
-            'password.required'=>'La contrasenya es obligatoria',
-            'password.min'=>'La conrasenya ha de tindre almenys 8 caracters'
+            'name.required'=>'El nombre es obligatorio',
+            'name.min'=>'El nombre debe tener al menos 2 caracteres',
+            'email.required'=>'El correo es obligatorio',
+            'email.email'=>'Formato de correo inválido',
+            'email.unique'=>'Este correo ya está registrado',
+            'phone.required'=>'El teléfono es obligatorio',
+            'phone.regex'=> 'El teléfono debe tener entre 9 y 15 dígitos',
+            'password.required'=>'La contraseña es obligatoria',
+            'password.min'=>'La contraseña debe tener al menos 8 caracteres'
         ]);
         try {
             // Creació del usuari mitjançant les dades introduides pel formulari
@@ -83,9 +83,9 @@ class AuthController extends Controller
             'email'=>'required|email',
             'password'=>'required|string|min:5'
         ],[
-            'email.required'=> 'El correu es obligatori',
-            'email.email'=>'Format de correu invàlid',
-            'password.required'=>'La contrasenya es obligatoria'
+            'email.required'=> 'El correo es obligatorio',
+            'email.email'=>'Formato de correo inválido',
+            'password.required'=>'La contraseña es obligatoria'
 
         ]);
         try {
