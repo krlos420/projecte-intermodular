@@ -149,7 +149,19 @@ export default {
           }, 1500)
         }
       } catch (err) {
-        error.value = 'Error al registrar usuario'
+        if (err.response?.data?.errors) {
+          // Si hay errores de validación, mostramos el primero
+          const errors = err.response.data.errors
+          const firstKey = Object.keys(errors)[0]
+          error.value = errors[firstKey][0]
+        } else if (err.response?.data?.message) {
+          // Si hay un mensaje general del backend
+          error.value = err.response.data.message
+        } else {
+          // Fallback para otros errores
+          error.value = 'Error al registrar usuario'
+        }
+        console.error(err)
       }
     }
 
