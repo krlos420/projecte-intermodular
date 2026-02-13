@@ -39,3 +39,10 @@ RUN chown -R app:app /var/www/html
 
 # Directorio de trabajo
 WORKDIR /var/www/html
+
+# Entrypoint automatico
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php-fpm"]
