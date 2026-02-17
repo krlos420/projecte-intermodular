@@ -1,60 +1,91 @@
 <template>
-  <div class="contenedor-registro">
-    <h1>Registrarse - Comp-Together</h1>
-    <form @submit.prevent="registrarUsuario">
-      <div class="campo">
-        <input 
-          v-model="nombre" 
-          type="text" 
-          placeholder="Nombre" 
-          :class="{ 'input-error': erroresValidacion.nombre }"
-          @blur="validarNombre"
-          required 
-        />
-        <span v-if="erroresValidacion.nombre" class="mensaje-error">{{ erroresValidacion.nombre }}</span>
+  <div class="register-container">
+    <div class="register-brand">
+      <div class="brand-content">
+        <h1>Únete a nosotros</h1>
+        <p>Empieza a organizar tu casa hoy mismo.</p>
+        <p class="brand-text">Crea grupos, divide gastos y vive tranquilo.</p>
       </div>
+    </div>
+    
+    <div class="register-form-wrapper">
+      <div class="form-card">
+        <h2>Crear Cuenta 🚀</h2>
+        <p class="subtitle">Rellena el formulario para comenzar</p>
+        
+        <form @submit.prevent="registrarUsuario">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre Completo</label>
+              <input 
+                v-model="nombre" 
+                type="text" 
+                placeholder="Tu nombre" 
+                :class="{ 'input-error': erroresValidacion.nombre }"
+                @blur="validarNombre"
+                required 
+              />
+              <span v-if="erroresValidacion.nombre" class="error-text">{{ erroresValidacion.nombre }}</span>
+            </div>
 
-      <div class="campo">
-        <input 
-          v-model="correo" 
-          type="email" 
-          placeholder="Email" 
-          :class="{ 'input-error': erroresValidacion.correo }"
-          @blur="validarEmail"
-          required 
-        />
-        <span v-if="erroresValidacion.correo" class="mensaje-error">{{ erroresValidacion.correo }}</span>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input 
+                v-model="telefono" 
+                type="text" 
+                placeholder="Tu teléfono" 
+                :class="{ 'input-error': erroresValidacion.telefono }"
+                @blur="validarTelefono"
+                required 
+              />
+              <span v-if="erroresValidacion.telefono" class="error-text">{{ erroresValidacion.telefono }}</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input 
+              v-model="correo" 
+              type="email" 
+              placeholder="ejemplo@correo.com" 
+              :class="{ 'input-error': erroresValidacion.correo }"
+              @blur="validarEmail"
+              required 
+            />
+            <span v-if="erroresValidacion.correo" class="error-text">{{ erroresValidacion.correo }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input 
+              v-model="contrasena" 
+              type="password" 
+              placeholder="Mínimo 8 caracteres" 
+              :class="{ 'input-error': erroresValidacion.contrasena }"
+              @blur="validarContrasena"
+              required 
+            />
+            <span v-if="erroresValidacion.contrasena" class="error-text">{{ erroresValidacion.contrasena }}</span>
+          </div>
+
+          <button type="submit" class="btn-primary" :disabled="cargando">
+            {{ cargando ? 'Registrando...' : 'Crear Cuenta' }}
+          </button>
+          
+          <div v-if="error" class="error-msg">
+            <span class="icon">⚠️</span> {{ error }}
+          </div>
+          
+          <div v-if="exito" class="success-msg">
+            <span class="icon">✅</span> {{ exito }}
+          </div>
+        </form>
+
+        <div class="register-footer">
+          <p>¿Ya tienes cuenta? <router-link to="/login">Inicia sesión aquí</router-link></p>
+        </div>
       </div>
-
-      <div class="campo">
-        <input 
-          v-model="telefono" 
-          type="text" 
-          placeholder="Teléfono" 
-          :class="{ 'input-error': erroresValidacion.telefono }"
-          @blur="validarTelefono"
-          required 
-        />
-        <span v-if="erroresValidacion.telefono" class="mensaje-error">{{ erroresValidacion.telefono }}</span>
-      </div>
-
-      <div class="campo">
-        <input 
-          v-model="contrasena" 
-          type="password" 
-          placeholder="Contraseña (mínimo 8 caracteres)" 
-          :class="{ 'input-error': erroresValidacion.contrasena }"
-          @blur="validarContrasena"
-          required 
-        />
-        <span v-if="erroresValidacion.contrasena" class="mensaje-error">{{ erroresValidacion.contrasena }}</span>
-      </div>
-
-      <button type="submit">Registrarse</button>
-      <p v-if="error" class="error">{{ error }}</p>
-      <p v-if="exito" class="exito">{{ exito }}</p>
-    </form>
-    <p>¿Ya tienes cuenta? <router-link to="/login">Inicia sesión</router-link></p>
+    </div>
   </div>
 </template>
 
@@ -74,6 +105,7 @@ export default {
     const contrasena = ref('')
     const error = ref('')
     const exito = ref('')
+    const cargando = ref(false)
     
     const erroresValidacion = reactive({
       nombre: '',
@@ -84,7 +116,7 @@ export default {
 
     const validarNombre = () => {
       if (nombre.value.trim().length < 2) {
-        erroresValidacion.nombre = 'El nombre debe tener al menos 2 caracteres'
+        erroresValidacion.nombre = 'Mínimo 2 caracteres'
         return false
       }
       erroresValidacion.nombre = ''
@@ -104,7 +136,7 @@ export default {
     const validarTelefono = () => {
       const regex = /^[0-9]{9,15}$/
       if (!regex.test(telefono.value.trim())) {
-        erroresValidacion.telefono = 'Teléfono debe tener entre 9 y 15 dígitos'
+        erroresValidacion.telefono = 'Entre 9 y 15 dígitos'
         return false
       }
       erroresValidacion.telefono = ''
@@ -113,7 +145,7 @@ export default {
 
     const validarContrasena = () => {
       if (contrasena.value.length < 8) {
-        erroresValidacion.contrasena = 'La contraseña debe tener al menos 8 caracteres'
+        erroresValidacion.contrasena = 'Mínimo 8 caracteres'
         return false
       }
       erroresValidacion.contrasena = ''
@@ -121,19 +153,19 @@ export default {
     }
 
     const registrarUsuario = async () => {
-      // Validar todos los campos antes de enviar
       const nombreValido = validarNombre()
       const emailValido = validarEmail()
       const telefonoValido = validarTelefono()
       const contrasenaValida = validarContrasena()
 
       if (!nombreValido || !emailValido || !telefonoValido || !contrasenaValida) {
-        error.value = 'Por favor, corrige los errores antes de continuar'
+        error.value = 'Por favor, corrige los errores marcados'
         return
       }
 
       error.value = ''
       exito.value = ''
+      cargando.value = true
 
       try {
         const success = await userStore.register({
@@ -145,15 +177,13 @@ export default {
         })
 
         if (success) {
-          exito.value = 'Usuario creado. Redirigiendo...'
+          exito.value = '¡Cuenta creada! Redirigiendo...'
           setTimeout(() => {
             router.push('/create-join-house')
           }, 1500)
         }
       } catch (err) {
         console.error(err)
-        // El store ya maneja el error y lo guarda en userStore.error si es generico
-        // Pero para errores de validacion especificos del backend, podemos acceder a err.response
         if (err.response?.data?.errors) {
           const errors = err.response.data.errors
           const firstKey = Object.keys(errors)[0]
@@ -163,6 +193,8 @@ export default {
         } else {
           error.value = 'Error al registrar usuario'
         }
+      } finally {
+        cargando.value = false
       }
     }
 
@@ -172,7 +204,8 @@ export default {
       telefono, 
       contrasena, 
       error, 
-      exito, 
+      exito,
+      cargando,
       erroresValidacion,
       validarNombre,
       validarEmail,
@@ -185,167 +218,248 @@ export default {
 </script>
 
 <style scoped>
-.contenedor-registro {
+.register-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: white;
+}
+
+/* Sección Izquierda (Branding) */
+.register-brand {
+  flex: 1;
+  background: linear-gradient(135deg, #35a372 0%, #2e7d5a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-brand::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIiBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=') repeat;
+  opacity: 0.1;
+}
+
+.brand-content {
   max-width: 450px;
-  margin: 60px auto;
+  text-align: center;
+  z-index: 1;
+}
+
+.brand-content h1 {
+  font-size: 3.5em;
+  font-weight: 800;
+  margin-bottom: 20px;
+  letter-spacing: -1px;
+}
+
+.brand-content p {
+  font-size: 1.5em;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+.brand-text {
+  font-size: 1.1em;
+  margin-top: 15px;
+  opacity: 0.8;
+}
+
+/* Sección Derecha (Formulario) */
+.register-form-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #f8f9fa;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 500px;
   padding: 40px;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.05);
 }
 
-.contenedor-registro h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  background: linear-gradient(135deg, #42b983, #35a372);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 1.8em;
+.form-card h2 {
+  font-size: 2em;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+  font-weight: 700;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.subtitle {
+  color: #666;
+  margin-bottom: 35px;
+  font-size: 1.1em;
 }
 
-.campo {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95em;
 }
 
 input {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  padding: 16px;
+  border: 2px solid #e1e4e8;
+  border-radius: 12px;
   font-size: 1em;
   transition: all 0.3s ease;
+  background: #fdfdfd;
   box-sizing: border-box;
 }
 
 input:focus {
   outline: none;
   border-color: #42b983;
-  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(66, 185, 131, 0.1);
 }
 
-input.input-error {
+.input-error {
   border-color: #f44336;
-  background: #ffebee;
+  background: #fff5f5;
 }
 
-input.input-error:focus {
-  border-color: #f443 36;
-  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
-}
-
-.mensaje-error {
+.error-text {
   color: #f44336;
   font-size: 0.85em;
-  padding-left: 4px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  margin-top: 5px;
+  display: block;
 }
 
-.mensaje-error::before {
-  content: '⚠️';
-  font-size: 0.9em;
-}
-
-button {
+.btn-primary {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #42b983, #35a372);
+  padding: 16px;
+  background: #42b983;
   color: white;
   border: none;
+  border-radius: 12px;
+  font-size: 1.1em;
+  font-weight: 700;
   cursor: pointer;
-  border-radius: 8px;
-  font-size: 1.05em;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   margin-top: 10px;
 }
 
-button:hover {
+.btn-primary:hover:not(:disabled) {
+  background: #35a372;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(66, 185, 131, 0.3);
+  box-shadow: 0 5px 15px rgba(66, 185, 131, 0.3);
 }
 
-button:active {
-  transform: translateY(0);
+.btn-primary:disabled {
+  background: #a0dcb8;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.error {
-  color: #f44336;
-  background: #ffebee;
+.error-msg {
+  margin-top: 20px;
   padding: 12px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
   border-radius: 8px;
-  text-align: center;
   font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.exito {
-  color: #4caf50;
-  background: #e8f5e9;
+.success-msg {
+  margin-top: 20px;
   padding: 12px;
+  background: #f0fff4;
+  border: 1px solid #c6f6d5;
+  color: #2f855a;
   border-radius: 8px;
-  text-align: center;
   font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.contenedor-registro > p {
+.register-footer {
+  margin-top: 30px;
   text-align: center;
-  margin: 20px 0 0 0;
+  border-top: 1px solid #edf2f7;
+  padding-top: 20px;
+}
+
+.register-footer p {
   color: #666;
 }
 
-.contenedor-registro > p a {
+.register-footer a {
   color: #42b983;
+  font-weight: 700;
   text-decoration: none;
-  font-weight: 600;
+  margin-left: 5px;
 }
 
-.contenedor-registro > p a:hover {
+.register-footer a:hover {
   text-decoration: underline;
 }
 
-/* Responsive para tablets */
-@media (max-width: 768px) {
-  .contenedor-registro {
-    margin: 40px 20px;
-    padding: 30px;
+/* Responsive - Móvil */
+@media (max-width: 900px) {
+  .register-container {
+    flex-direction: column;
   }
   
-  .contenedor-registro h1 {
-    font-size: 1.6em;
-  }
-}
-
-/* Responsive para móviles */
-@media (max-width: 480px) {
-  .contenedor-registro {
-    margin: 30px 15px;
-    padding: 25px 20px;
-    border-radius: 12px;
+  .register-brand {
+    padding: 30px 20px;
+    flex: 0 0 auto;
+    min-height: 180px;
   }
   
-  .contenedor-registro h1 {
-    font-size: 1.4em;
-    margin-bottom: 25px;
+  .brand-content h1 {
+    font-size: 2em;
   }
   
-  input {
-    padding: 12px 14px;
-    font-size: 0.95em;
+  .register-form-wrapper {
+    flex: 1;
+    padding: 20px;
+    align-items: flex-start;
   }
   
-  button {
-    padding: 12px;
-    font-size: 1em;
+  .form-card {
+    box-shadow: none;
+    padding: 20px 0;
+    max-width: 100%;
+    background: transparent;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
   }
 }
 </style>

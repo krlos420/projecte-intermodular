@@ -11,14 +11,12 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libssl-dev \
     libjemalloc2 \
+    libicu-dev \
     $PHPIZE_DEPS \
     && rm -rf /var/lib/apt/lists/*
 
 # Extensiones básicas de PHP
-RUN docker-php-ext-install pdo pdo_mysql xml ctype zip
-
-# Instalar extensión de MongoDB
-RUN pecl install mongodb && docker-php-ext-enable mongodb
+RUN docker-php-ext-install pdo pdo_mysql xml ctype zip bcmath intl
 
 # Iniciar Xdebug
 RUN docker-php-ext-enable xdebug
