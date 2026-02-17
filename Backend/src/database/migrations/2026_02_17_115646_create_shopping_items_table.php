@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('shopping_items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('house_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('quantity')->nullable(); // Ej: "1 Litro", "2 paquetes"
+            $table->boolean('is_completed')->default(false);
             $table->timestamps();
         });
     }

@@ -64,6 +64,26 @@
               </div>
             </div>
           </div>
+
+          <!-- Widget Lista de la Compra (Nuevo) -->
+          <div class="card shopping-card">
+            <div class="card-header-small">
+              <h3>🛒 Lista Compra</h3>
+              <span v-if="pendingCount > 0" class="badge-count">{{ pendingCount }}</span>
+            </div>
+            
+            <div class="shopping-preview">
+              <p v-if="pendingCount === 0" class="text-muted">¡Nevera llena! ✅</p>
+              <ul v-else class="preview-list">
+                <li v-for="item in previewItems" :key="item.id">
+                  • {{ item.name }}
+                </li>
+              </ul>
+              <button @click="$router.push('/shopping-list')" class="btn-link-action">
+                Ver lista completa →
+              </button>
+            </div>
+          </div>
         </aside>
 
         <!-- Panel Principal: Gastos -->
@@ -171,6 +191,7 @@ import { storeToRefs } from 'pinia'
 import { useUserStore } from '../stores/UserStore'
 import { useHouseStore } from '../stores/HouseStore'
 import { useExpenseStore } from '../stores/ExpenseStore'
+import { useShoppingStore } from '../stores/ShoppingStore'
 import Spinner from '../components/Spinner.vue'
 
 export default {
@@ -184,6 +205,12 @@ export default {
     const { house } = storeToRefs(houseStore)
     const { user } = storeToRefs(userStore)
     const { expenses } = storeToRefs(expenseStore)
+    
+    // Shopping Store
+    const shoppingStore = useShoppingStore()
+    const { items: shoppingItems } = storeToRefs(shoppingStore) 
+    const pendingCount = computed(() => shoppingStore.pendingCount)
+    const previewItems = computed(() => shoppingItems.value.filter(i => !i.is_completed).slice(0, 3))
 
     const mostrarInfoCasa = ref(false) // Para móvil
     const mostrarFormulario = ref(false)
@@ -211,6 +238,8 @@ export default {
           return
         }
         await expenseStore.fetchExpenses()
+        // Cargar lista de compra sin bloquear (background)
+        shoppingStore.fetchItems()
       } catch (err) {
         console.error('Error cargando dashboard:', err)
       } finally {
@@ -283,6 +312,7 @@ export default {
 
     return {
       user, nombreCasa, infoCasa, gastos, totalGastos,
+      pendingCount, previewItems,
       mostrarInfoCasa, mostrarFormulario, modoEdicion, cargando, gastoActual,
       abrirModalNuevo, abrirModalEditar, cerrarModal, guardarGasto, eliminarGasto,
       copiarCodigo, salirDeCasa, cerrarSesion, irEstadisticas, formatearFecha
@@ -484,6 +514,64 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+/* Shopping Widget */
+.shopping-card .card-header-small {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.shopping-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #2d3748;
+}
+
+.badge-count {
+  background: #e53e3e;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.preview-list li {
+  margin-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-link-action {
+  background: none;
+  border: none;
+  color: #42b983;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.btn-link-action:hover {
+  text-decoration: underline;
+}
+
+.text-muted {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  font-style: italic;
 }
 
 /* Panel Principal (Gastos) */

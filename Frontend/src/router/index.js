@@ -4,6 +4,7 @@ import Dashboard from '../views/Dashboard.vue'
 import Register from '../views/Register.vue'
 import CreateJoinHouse from '../views/CreateJoinHouse.vue'
 import Estadisticas from '../views/Estadisticas.vue'
+import ShoppingList from '../views/ShoppingList.vue'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -38,6 +39,12 @@ const router = createRouter({
             path: '/estadisticas',
             name: 'Estadisticas',
             component: Estadisticas,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/shopping-list',
+            name: 'ShoppingList',
+            component: ShoppingList,
             meta: { requiresAuth: true }
         }
     ]

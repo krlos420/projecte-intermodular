@@ -44,4 +44,12 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::delete('/destroy/{id}', [ExpenseController::class, 'destroy'])->name('destroy');
         Route::get('/statistics', [ExpenseController::class, 'statistics'])->name('statistics');
     });
+
+    // Shopping List
+    Route::prefix('shopping-list')->name('shopping-list.')->group(function (){
+        Route::get('/', [\App\Http\Controllers\ShoppingListController::class, 'index'])->name('index');
+        Route::post('/store', [\App\Http\Controllers\ShoppingListController::class, 'store'])->name('store');
+        Route::put('/update/{id}', [\App\Http\Controllers\ShoppingListController::class, 'update'])->name('update');
+        Route::delete('/destroy/{id}', [\App\Http\Controllers\ShoppingListController::class, 'destroy'])->name('destroy');
+    });
 });
