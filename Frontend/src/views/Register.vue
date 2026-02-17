@@ -61,11 +61,13 @@
 <script>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+import { useUserStore } from '../stores/UserStore'
 
 export default {
   setup() {
     const router = useRouter()
+    const userStore = useUserStore()
+
     const nombre = ref('')
     const correo = ref('')
     const telefono = ref('')
@@ -131,9 +133,10 @@ export default {
       }
 
       error.value = ''
+      exito.value = ''
 
       try {
-        const response = await api.post('/auth/register', {
+        const success = await userStore.register({
           name: nombre.value,
           email: correo.value,
           phone: telefono.value,
@@ -141,27 +144,25 @@ export default {
           password: contrasena.value
         })
 
-        if (response.data.status === 'true') {
+        if (success) {
           exito.value = 'Usuario creado. Redirigiendo...'
           setTimeout(() => {
-            localStorage.setItem('token', response.data.token)
             router.push('/create-join-house')
           }, 1500)
         }
       } catch (err) {
+        console.error(err)
+        // El store ya maneja el error y lo guarda en userStore.error si es generico
+        // Pero para errores de validacion especificos del backend, podemos acceder a err.response
         if (err.response?.data?.errors) {
-          // Si hay errores de validación, mostramos el primero
           const errors = err.response.data.errors
           const firstKey = Object.keys(errors)[0]
           error.value = errors[firstKey][0]
-        } else if (err.response?.data?.message) {
-          // Si hay un mensaje general del backend
-          error.value = err.response.data.message
+        } else if (userStore.error) {
+          error.value = userStore.error
         } else {
-          // Fallback para otros errores
           error.value = 'Error al registrar usuario'
         }
-        console.error(err)
       }
     }
 
