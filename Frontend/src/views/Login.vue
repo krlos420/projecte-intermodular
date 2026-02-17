@@ -14,28 +14,31 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+import { useUserStore } from '../stores/UserStore'
 
 export default {
   setup() {
     const router = useRouter()
+    const userStore = useUserStore()
+    
     const correo = ref('')
     const contrasena = ref('')
     const error = ref('')
 
     const iniciarSesion = async () => {
+      error.value = ''
       try {
-        const response = await api.post('/auth/login', {
+        const success = await userStore.login({
           email: correo.value,
           password: contrasena.value
         })
 
-        if (response.data.status === 'true') {
-          localStorage.setItem('token', response.data.token)
+        if (success) {
           router.push('/dashboard')
         }
       } catch (err) {
-        error.value = 'Credenciales incorrectas'
+        console.error(err)
+        error.value = userStore.error || 'Credenciales incorrectas'
       }
     }
 
