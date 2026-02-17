@@ -84,9 +84,12 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+import { storeToRefs } from 'pinia'
+import { useUserStore } from '../stores/UserStore'
+import { useHouseStore } from '../stores/HouseStore'
+import api from '../services/api' // Mantenemos api solo para gastos por ahora
 import Spinner from '../components/Spinner.vue'
 
 export default {
@@ -95,9 +98,15 @@ export default {
   },
   setup() {
     const router = useRouter()
+    const userStore = useUserStore()
+    const houseStore = useHouseStore()
+    
+    // Usamos storeToRefs para mantener reactividad de las propiedades del store
+    const { house } = storeToRefs(houseStore)
+    const { user } = storeToRefs(userStore)
+
+    // Estado local solo para UI y gastos (que aun no tienen store)
     const gastos = ref([])
-    const nombreCasa = ref('')
-    const infoCasa = ref(null)
     const mostrarInfoCasa = ref(false)
     const mostrarFormulario = ref(false)
     const modoEdicion = ref(false)
@@ -109,24 +118,42 @@ export default {
       date: new Date().toISOString().split('T')[0]
     })
 
+    // Computed properties para facilitar acceso
+    const nombreCasa = computed(() => house.value?.name || '')
+    const infoCasa = computed(() => house.value)
+
     const cargarDatos = async () => {
+      cargando.value = true
       try {
-        const casaRes = await api.get('/houses/my-house')
-        if (casaRes.data.status === 'true') {
-          infoCasa.value = casaRes.data.house
-          nombreCasa.value = casaRes.data.house.name
+        // 1. Cargar Usuario si no está
+        if (!user.value) await userStore.fetchUser()
+
+        // 2. Cargar Casa
+        await houseStore.fetchMyHouse()
+        
+        if (!house.value) {
+          router.push('/create-join-house')
+          return
         }
 
+        // 3. Cargar Gastos (Aun manual, pendiente de mover a ExpenseStore)
+        await cargarGastos()
+
+      } catch (err) {
+        console.error('Error cargando dashboard:', err)
+      } finally {
+        cargando.value = false
+      }
+    }
+
+    const cargarGastos = async () => {
+      try {
         const gastosRes = await api.get('/expenses')
         if (gastosRes.data.status === 'true') {
           gastos.value = gastosRes.data.expenses
         }
-      } catch (err) {
-        if (err.response?.status === 404) {
-          router.push('/create-join-house')
-        }
-      } finally {
-        cargando.value = false
+      } catch(err) {
+        console.error(err)
       }
     }
 
@@ -163,34 +190,31 @@ export default {
       }
     }
 
+    // Funciones de Gastos (Mantienen lógica local por ahora)
     const guardarGasto = async () => {
       try {
-        // Validación básica
         if (!gastoActual.value.title || !gastoActual.value.amount || gastoActual.value.amount <= 0) {
           window.mostrarNotificacion('Por favor, completa todos los campos correctamente', 'advertencia')
           return
         }
 
+        let response
         if (modoEdicion.value) {
-          // Actualizar gasto existente
-          const response = await api.put(`/expenses/update/${gastoActual.value.id}`, {
+          response = await api.put(`/expenses/update/${gastoActual.value.id}`, {
             title: gastoActual.value.title,
             amount: gastoActual.value.amount,
             date: gastoActual.value.date
           })
           
           if (response.data.status === 'true') {
-            // Actualizar en la lista
             const index = gastos.value.findIndex(g => g.id === gastoActual.value.id)
             if (index !== -1) {
               gastos.value[index] = { ...gastos.value[index], ...response.data.expense }
             }
             window.mostrarNotificacion('Gasto actualizado correctamente', 'exito')
-            cerrarModal()
           }
         } else {
-          // Crear nuevo gasto
-          const response = await api.post('/expenses/store', {
+          response = await api.post('/expenses/store', {
             title: gastoActual.value.title,
             amount: gastoActual.value.amount,
             date: gastoActual.value.date
@@ -199,9 +223,9 @@ export default {
           if (response.data.status === 'true') {
             gastos.value.unshift(response.data.expense)
             window.mostrarNotificacion('Gasto añadido correctamente', 'exito')
-            cerrarModal()
           }
         }
+        cerrarModal()
       } catch (err) {
         window.mostrarNotificacion('Error al guardar el gasto: ' + (err.response?.data?.message || err.message), 'error')
       }
@@ -223,10 +247,11 @@ export default {
       }
     }
 
+    // Funciones de Casa (Ahora usan el Store)
     const copiarCodigo = () => {
-      if (infoCasa.value?.invite_code) {
-        navigator.clipboard.writeText(infoCasa.value.invite_code)
-        window.mostrarNotificacion('Código copiado: ' + infoCasa.value.invite_code, 'exito')
+      if (house.value?.invite_code) {
+        navigator.clipboard.writeText(house.value.invite_code)
+        window.mostrarNotificacion('Código copiado: ' + house.value.invite_code, 'exito')
       }
     }
 
@@ -236,13 +261,11 @@ export default {
       }
 
       try {
-        const response = await api.post('/houses/leave')
-        if (response.data.status === 'true') {
-          window.mostrarNotificacion('Has salido de la casa correctamente', 'exito')
-          router.push('/create-join-house')
-        }
+        await houseStore.leaveHouse()
+        window.mostrarNotificacion('Has salido de la casa correctamente', 'exito')
+        router.push('/create-join-house')
       } catch (err) {
-        window.mostrarNotificacion('Error al salir de la casa: ' + (err.response?.data?.message || err.message), 'error')
+        window.mostrarNotificacion('Error al salir de la casa: ' + (houseStore.error || 'Error desconocido'), 'error')
       }
     }
 
@@ -250,8 +273,8 @@ export default {
       router.push('/estadisticas')
     }
 
-    const cerrarSesion= () => {
-      localStorage.removeItem('token')
+    const cerrarSesion = async () => {
+      await userStore.logout()
       router.push('/login')
     }
 
