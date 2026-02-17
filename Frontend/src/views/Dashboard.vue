@@ -89,7 +89,7 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '../stores/UserStore'
 import { useHouseStore } from '../stores/HouseStore'
-import api from '../services/api' // Mantenemos api solo para gastos por ahora
+import { useExpenseStore } from '../stores/ExpenseStore'
 import Spinner from '../components/Spinner.vue'
 
 export default {
@@ -100,13 +100,14 @@ export default {
     const router = useRouter()
     const userStore = useUserStore()
     const houseStore = useHouseStore()
+    const expenseStore = useExpenseStore()
     
     // Usamos storeToRefs para mantener reactividad de las propiedades del store
     const { house } = storeToRefs(houseStore)
     const { user } = storeToRefs(userStore)
+    const { expenses } = storeToRefs(expenseStore) // Renombramos si es necesario, pero expenses está bien
 
-    // Estado local solo para UI y gastos (que aun no tienen store)
-    const gastos = ref([])
+    // Estado local solo para UI
     const mostrarInfoCasa = ref(false)
     const mostrarFormulario = ref(false)
     const modoEdicion = ref(false)
@@ -118,9 +119,11 @@ export default {
       date: new Date().toISOString().split('T')[0]
     })
 
-    // Computed properties para facilitar acceso
+    // Computed properties
     const nombreCasa = computed(() => house.value?.name || '')
     const infoCasa = computed(() => house.value)
+    // Mapeamos gastos para que la vista lo use igual que antes
+    const gastos = computed(() => expenses.value)
 
     const cargarDatos = async () => {
       cargando.value = true
@@ -136,24 +139,13 @@ export default {
           return
         }
 
-        // 3. Cargar Gastos (Aun manual, pendiente de mover a ExpenseStore)
-        await cargarGastos()
+        // 3. Cargar Gastos (Ahora desde el store)
+        await expenseStore.fetchExpenses()
 
       } catch (err) {
         console.error('Error cargando dashboard:', err)
       } finally {
         cargando.value = false
-      }
-    }
-
-    const cargarGastos = async () => {
-      try {
-        const gastosRes = await api.get('/expenses')
-        if (gastosRes.data.status === 'true') {
-          gastos.value = gastosRes.data.expenses
-        }
-      } catch(err) {
-        console.error(err)
       }
     }
 
@@ -190,7 +182,7 @@ export default {
       }
     }
 
-    // Funciones de Gastos (Mantienen lógica local por ahora)
+    // Funciones de Gastos (Delegando al Store)
     const guardarGasto = async () => {
       try {
         if (!gastoActual.value.title || !gastoActual.value.amount || gastoActual.value.amount <= 0) {
@@ -198,36 +190,27 @@ export default {
           return
         }
 
-        let response
+        let success = false
         if (modoEdicion.value) {
-          response = await api.put(`/expenses/update/${gastoActual.value.id}`, {
+          success = await expenseStore.updateExpense(gastoActual.value.id, {
             title: gastoActual.value.title,
             amount: gastoActual.value.amount,
             date: gastoActual.value.date
           })
-          
-          if (response.data.status === 'true') {
-            const index = gastos.value.findIndex(g => g.id === gastoActual.value.id)
-            if (index !== -1) {
-              gastos.value[index] = { ...gastos.value[index], ...response.data.expense }
-            }
-            window.mostrarNotificacion('Gasto actualizado correctamente', 'exito')
-          }
+          if (success) window.mostrarNotificacion('Gasto actualizado correctamente', 'exito')
         } else {
-          response = await api.post('/expenses/store', {
+          success = await expenseStore.createExpense({
             title: gastoActual.value.title,
             amount: gastoActual.value.amount,
             date: gastoActual.value.date
           })
-          
-          if (response.data.status === 'true') {
-            gastos.value.unshift(response.data.expense)
-            window.mostrarNotificacion('Gasto añadido correctamente', 'exito')
-          }
+          if (success) window.mostrarNotificacion('Gasto añadido correctamente', 'exito')
         }
-        cerrarModal()
+        
+        if (success) cerrarModal()
+        
       } catch (err) {
-        window.mostrarNotificacion('Error al guardar el gasto: ' + (err.response?.data?.message || err.message), 'error')
+        window.mostrarNotificacion('Error al guardar el gasto: ' + (expenseStore.error || err.message), 'error')
       }
     }
 
@@ -237,17 +220,16 @@ export default {
       }
 
       try {
-        const response = await api.delete(`/expenses/destroy/${id}`)
-        if (response.data.status === 'true') {
-          gastos.value = gastos.value.filter(g => g.id !== id)
+        const success = await expenseStore.deleteExpense(id)
+        if (success) {
           window.mostrarNotificacion('Gasto eliminado correctamente', 'exito')
         }
       } catch (err) {
-        window.mostrarNotificacion('Error al eliminar el gasto: ' + (err.response?.data?.message || err.message), 'error')
+        window.mostrarNotificacion('Error al eliminar el gasto: ' + (expenseStore.error || err.message), 'error')
       }
     }
 
-    // Funciones de Casa (Ahora usan el Store)
+    // Funciones de Casa
     const copiarCodigo = () => {
       if (house.value?.invite_code) {
         navigator.clipboard.writeText(house.value.invite_code)
