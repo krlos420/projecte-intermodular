@@ -1,20 +1,76 @@
 <template>
-  <div class="contenedor-casa">
-    <h1>Gestionar Casa</h1>
-    
-    <div class="seccion">
-      <h2>Crear Nueva Casa</h2>
-      <input v-model="nombreCasa" type="text" placeholder="Nombre de la casa" />
-      <button @click="crearCasa">Crear Casa</button>
-    </div>
+  <div class="house-container">
+    <div class="content-wrapper">
+      <div class="header-section">
+        <h1>¡Bienvenido a Comp-Together! 👋</h1>
+        <p>Para comenzar, necesitas formar parte de una casa.</p>
+      </div>
 
-    <div class="seccion">
-      <h2>Unirse a Casa</h2>
-      <input v-model="codigoInvitacion" type="text" placeholder="Código de invitación" />
-      <button @click="unirCasa">Unirse</button>
-    </div>
+      <div class="cards-grid">
+        <!-- Tarjeta Crear Casa -->
+        <div class="action-card create-card">
+          <div class="card-icon">🏠</div>
+          <h2>Crear una nueva casa</h2>
+          <p>Sé el administrador y crea un espacio para ti y tus compañeros.</p>
+          
+          <div class="card-form">
+            <input 
+              v-model="nombreCasa" 
+              type="text" 
+              placeholder="Nombre de tu casa (ej. Casa playa)" 
+              class="input-field"
+            />
+            <button 
+              @click="crearCasa" 
+              class="btn-action btn-create"
+              :disabled="loading"
+            >
+              {{ loading ? 'Creando...' : 'Crear Casa' }}
+            </button>
+          </div>
+        </div>
 
-    <p v-if="mensaje" :class="tipoMensaje">{{ mensaje }}</p>
+        <!-- Divisor (visible en desktop) -->
+        <div class="divider">
+          <span>O</span>
+        </div>
+
+        <!-- Tarjeta Unirse a Casa -->
+        <div class="action-card join-card">
+          <div class="card-icon">🔑</div>
+          <h2>Unirme a una casa</h2>
+          <p>Si ya tienes un código de invitación, ingrésalo aquí.</p>
+          
+          <div class="card-form">
+            <input 
+              v-model="codigoInvitacion" 
+              type="text" 
+              placeholder="Código de invitación" 
+              class="input-field"
+            />
+            <button 
+              @click="unirCasa" 
+              class="btn-action btn-join"
+              :disabled="loading"
+            >
+              {{ loading ? 'Uniéndome...' : 'Unirme a Casa' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensajes de Feedback -->
+      <transition name="fade">
+        <div v-if="mensaje" :class="['feedback-message', tipoMensaje]">
+          <span class="feedback-icon">{{ tipoMensaje === 'exito' ? '✅' : '⚠️' }}</span>
+          {{ mensaje }}
+        </div>
+      </transition>
+      
+      <div class="logout-section">
+        <button @click="cerrarSesion" class="btn-text">Cerrar Sesión</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,57 +78,78 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHouseStore } from '../stores/HouseStore'
+import { useUserStore } from '../stores/UserStore'
 
 export default {
   setup() {
     const router = useRouter()
     const houseStore = useHouseStore()
+    const userStore = useUserStore()
     
     const nombreCasa = ref('')
     const codigoInvitacion = ref('')
     const mensaje = ref('')
     const tipoMensaje = ref('')
+    const loading = ref(false)
 
     const crearCasa = async () => {
-      // Validación básica
       if (!nombreCasa.value.trim()) {
-        mensaje.value = 'Por favor, escribe un nombre para la casa'
-        tipoMensaje.value = 'error'
+        mostrarMensaje('Escribe un nombre para la casa', 'error')
         return
       }
-
+      
+      loading.value = true
+      mensaje.value = ''
+      
       try {
         const house = await houseStore.createHouse(nombreCasa.value)
         if (house) {
-          mensaje.value = `Casa creada. Código: ${house.invite_code}`
-          tipoMensaje.value = 'exito'
+          mostrarMensaje(`Casa creada! Código: ${house.invite_code}`, 'exito')
           setTimeout(() => router.push('/dashboard'), 2000)
         }
       } catch (err) {
-        mensaje.value = houseStore.error || 'Error al crear casa'
-        tipoMensaje.value = 'error'
+        mostrarMensaje(houseStore.error || 'Error al crear la casa', 'error')
+      } finally {
+        loading.value = false
       }
     }
 
     const unirCasa = async () => {
-      // Validación básica
       if (!codigoInvitacion.value.trim()) {
-        mensaje.value = 'Por favor, escribe un código de invitación'
-        tipoMensaje.value = 'error'
+        mostrarMensaje('Ingresa un código válido', 'error')
         return
       }
+
+      loading.value = true
+      mensaje.value = ''
 
       try {
         const success = await houseStore.joinHouse(codigoInvitacion.value)
         if (success) {
-          mensaje.value = 'Te has unido a la casa correctamente'
-          tipoMensaje.value = 'exito'
+          mostrarMensaje('¡Te has unido correctamente!', 'exito')
           setTimeout(() => router.push('/dashboard'), 1500)
         }
       } catch (err) {
-        mensaje.value = houseStore.error || 'Código inválido o error al unirse'
-        tipoMensaje.value = 'error'
+        mostrarMensaje(houseStore.error || 'Código incorrecto o error al unirse', 'error')
+      } finally {
+        loading.value = false
       }
+    }
+
+    const mostrarMensaje = (texto, tipo) => {
+      mensaje.value = texto
+      tipoMensaje.value = tipo
+      // Auto-ocultar error después de 5s, éxito no (porque redirige)
+      if (tipo === 'error') {
+        setTimeout(() => {
+          mensaje.value = ''
+        }, 5000)
+      }
+    }
+    
+    const cerrarSesion = async () => {
+      await userStore.logout()
+      router.push('/login')
     }
 
     return { 
@@ -80,94 +157,124 @@ export default {
       codigoInvitacion, 
       mensaje, 
       tipoMensaje, 
+      loading,
       crearCasa, 
-      unirCasa 
+      unirCasa,
+      cerrarSesion
     }
   }
 }
 </script>
 
 <style scoped>
-.contenedor-casa {
-  max-width: 900px;
-  margin: 60px auto;
-  padding: 40px 20px;
-}
-
-.contenedor-casa h1 {
-  text-align: center;
-  margin-bottom: 50px;
-  background: linear-gradient(135deg, #42b983, #35a372);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 2.2em;
-}
-
-.seccion {
-  margin: 0 0 30px 0;
-  padding: 35px;
-  background: white;
-  border: none;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.seccion:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-}
-
-.seccion h2 {
-  margin: 0 0 25px 0;
-  font-size: 1.5em;
-  color: #333;
+.house-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  padding: 20px;
 }
 
-.seccion h2::before {
-  content: '🏠';
-  font-size: 1.2em;
-}
-
-.seccion:last-of-type h2::before {
-  content: '🔑';
-}
-
-input {
+.content-wrapper {
   width: 100%;
-  padding: 14px 16px;
-  margin: 0 0 15px 0;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1em;
-  transition: all 0.3s ease;
-  box-sizing: border-box;
+  max-width: 900px;
 }
 
-input:focus {
-  outline: none;
-  border-color: #42b983;
-  box-shadow: 0 0 0 3px rgba(66, 185, 131, 0.1);
+.header-section {
+  text-align: center;
+  margin-bottom: 50px;
 }
 
-button {
+.header-section h1 {
+  font-size: 2.5em;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.header-section p {
+  font-size: 1.2em;
+  color: #718096;
+}
+
+/* Grid de Tarjetas */
+.cards-grid {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 30px;
+  position: relative;
+}
+
+.action-card {
+  flex: 1;
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+  font-size: 3.5em;
+  margin-bottom: 20px;
+  background: #f7fafc;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  border-radius: 50%;
+}
+
+.action-card h2 {
+  font-size: 1.5em;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.action-card p {
+  color: #718096;
+  margin-bottom: 30px;
+  min-height: 48px; /* Para alinear alturas */
+}
+
+.card-form {
+  width: 100%;
+  margin-top: auto; /* Empuja el formulario al fondo */
+}
+
+.input-field {
   width: 100%;
   padding: 14px;
-  background: linear-gradient(135deg, #42b983, #35a372);
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 8px;
-  font-size: 1.05em;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 1em;
+  margin-bottom: 15px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  text-align: center;
 }
 
-button:hover {
+.input-field:focus {
+  outline: none;
+  border-color: #42b983;
+}
+
+.btn-action {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1em;
+  font-weight: 600;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(66, 185, 131, 0.4);
 }
