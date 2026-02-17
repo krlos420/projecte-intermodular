@@ -21,49 +21,68 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '../services/api'
+import { useHouseStore } from '../stores/HouseStore'
 
 export default {
   setup() {
     const router = useRouter()
+    const houseStore = useHouseStore()
+    
     const nombreCasa = ref('')
     const codigoInvitacion = ref('')
     const mensaje = ref('')
     const tipoMensaje = ref('')
 
     const crearCasa = async () => {
+      // Validación básica
+      if (!nombreCasa.value.trim()) {
+        mensaje.value = 'Por favor, escribe un nombre para la casa'
+        tipoMensaje.value = 'error'
+        return
+      }
+
       try {
-        const response = await api.post('/houses/create', {
-          name: nombreCasa.value
-        })
-        if (response.data.status === 'true') {
-          mensaje.value = `Casa creada. Código: ${response.data.house.invite_code}`
+        const house = await houseStore.createHouse(nombreCasa.value)
+        if (house) {
+          mensaje.value = `Casa creada. Código: ${house.invite_code}`
           tipoMensaje.value = 'exito'
           setTimeout(() => router.push('/dashboard'), 2000)
         }
       } catch (err) {
-        mensaje.value = err.response?.data?.message || 'Error al crear casa'
+        mensaje.value = houseStore.error || 'Error al crear casa'
         tipoMensaje.value = 'error'
       }
     }
 
     const unirCasa = async () => {
+      // Validación básica
+      if (!codigoInvitacion.value.trim()) {
+        mensaje.value = 'Por favor, escribe un código de invitación'
+        tipoMensaje.value = 'error'
+        return
+      }
+
       try {
-        const response = await api.post('/houses/join', {
-          invite_code: codigoInvitacion.value
-        })
-        if (response.data.status === 'true') {
+        const success = await houseStore.joinHouse(codigoInvitacion.value)
+        if (success) {
           mensaje.value = 'Te has unido a la casa correctamente'
           tipoMensaje.value = 'exito'
           setTimeout(() => router.push('/dashboard'), 1500)
         }
       } catch (err) {
-        mensaje.value = err.response?.data?.message || 'Código inválido'
+        mensaje.value = houseStore.error || 'Código inválido o error al unirse'
         tipoMensaje.value = 'error'
       }
     }
 
-    return { nombreCasa, codigoInvitacion, mensaje, tipoMensaje, crearCasa, unirCasa }
+    return { 
+      nombreCasa, 
+      codigoInvitacion, 
+      mensaje, 
+      tipoMensaje, 
+      crearCasa, 
+      unirCasa 
+    }
   }
 }
 </script>
