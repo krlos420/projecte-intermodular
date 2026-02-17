@@ -501,6 +501,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
   border-bottom: 1px solid #edf2f7;
 }
 
