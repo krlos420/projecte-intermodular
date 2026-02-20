@@ -35,10 +35,7 @@ class HouseController extends Controller
                 ], 400);
             }
 
-            // Validem les dades
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-            ]);
+
 
             // Generem un codi d'invitació únic de 8 caràcters
             do {
@@ -95,10 +92,7 @@ class HouseController extends Controller
                 ], 400);
             }
 
-            // Validem el codi d'invitació
-            $validated = $request->validate([
-                'invite_code' => 'required|string',
-            ]);
+
 
             // Busquem la casa pel codi
             $house = House::where('invite_code', $request->invite_code)->first();
@@ -263,7 +257,6 @@ class HouseController extends Controller
      */
     public function updateName(Request $request)
     {
-        try {
             $user = $request->user();
 
             // Comprovem si l'usuari té una casa assignada
@@ -274,10 +267,11 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Validem el nou nom
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-            ]);
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        try {
 
             $house = House::find($user->house_id);
 
