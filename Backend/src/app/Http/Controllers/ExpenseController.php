@@ -78,12 +78,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-            // Validem les dades
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'amount' => 'required|numeric|min:0',
-                'date' => 'required|date',
-            ]);
+
 
             // Creem el gasto
             $expense = Expense::create([
@@ -188,12 +183,7 @@ class ExpenseController extends Controller
                 ], 403);
             }
 
-            // Validem les dades
-            $validated = $request->validate([
-                'title' => 'string|max:255',
-                'amount' => 'numeric|min:0',
-                'date' => 'date',
-            ]);
+
 
             // Actualitzem el gasto
             $expense->update($request->only(['title', 'amount', 'date']));
