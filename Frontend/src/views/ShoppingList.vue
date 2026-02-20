@@ -384,12 +384,16 @@ export default {
 /* Transiciones de lista */
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.4s ease;
+}
+.list-leave-active {
+  position: absolute;
+  width: 100%;
 }
 .list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(30px) scale(0.9);
 }
 
 @media (max-width: 600px) {

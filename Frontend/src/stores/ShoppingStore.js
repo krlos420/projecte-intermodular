@@ -18,6 +18,7 @@ export const useShoppingStore = defineStore('shopping', {
                 }
             } catch (err) {
                 this.error = 'Error al cargar la lista'
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Error al cargar la lista de la compra', 'error')
                 console.error(err)
             } finally {
                 this.loading = false
@@ -32,10 +33,12 @@ export const useShoppingStore = defineStore('shopping', {
                 if (response.data.status === 'true') {
                     // Añadimos al principio o recargamos
                     this.items.unshift(response.data.item)
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Producto añadido', 'exito')
                     return true
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al añadir producto'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -54,6 +57,7 @@ export const useShoppingStore = defineStore('shopping', {
                 this.items.sort((a, b) => a.is_completed - b.is_completed || new Date(b.created_at) - new Date(a.created_at))
             } catch (err) {
                 console.error('Error actualizando estado', err)
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Error al actualizar el producto', 'error')
                 // Revertir en caso de error
                 const item = this.items.find(i => i.id === id)
                 if (item) item.is_completed = currentState
@@ -65,8 +69,10 @@ export const useShoppingStore = defineStore('shopping', {
             try {
                 await api.delete(`/shopping-list/destroy/${id}`)
                 this.items = this.items.filter(i => i.id !== id)
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Producto eliminado', 'exito')
             } catch (err) {
                 console.error('Error eliminando producto', err)
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Error al eliminar producto', 'error')
             }
         }
     },

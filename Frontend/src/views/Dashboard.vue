@@ -408,6 +408,12 @@ export default {
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.02);
   padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.05);
 }
 
 .card-header h2 {
