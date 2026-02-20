@@ -6,6 +6,7 @@
         <h1 class="logo">Comp-Together</h1>
         <div class="user-menu">
           <span class="user-greeting">Hola, {{ user?.name }} 👋</span>
+          <button @click="$router.push('/profile')" class="btn-icon-nav" title="Mi Perfil">👤</button>
           <button @click="cerrarSesion" class="btn-logout">
             <span class="icon">🚪</span> Salir
           </button>
@@ -381,6 +382,25 @@ export default {
 .btn-logout:hover {
   background: #fff5f5;
   border-color: #feb2b2;
+}
+
+.btn-icon-nav {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.1rem;
+}
+
+.btn-icon-nav:hover {
+  background: #edf2f7;
+  transform: scale(1.05);
 }
 
 /* Grid Principal */

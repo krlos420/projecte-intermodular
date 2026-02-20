@@ -74,10 +74,27 @@ export const useUserStore = defineStore('user', {
             try {
                 // Asumiendo que existe un endpoint /user o /auth/me
                 // Si no existe, usamos el stored user o lo implementaremos después
-                const response = await api.get('/user')
+                const response = await api.get('/users/me')
                 this.user = response.data
             } catch (err) {
                 this.logout()
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async updateUser(userData) {
+            this.loading = true
+            this.error = null
+            try {
+                const response = await api.put('/users/update', userData)
+                this.user = response.data.user
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Perfil actualizado', 'exito')
+                return true
+            } catch (err) {
+                this.error = err.response?.data?.message || 'Error al actualizar perfil'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
+                throw err
             } finally {
                 this.loading = false
             }
