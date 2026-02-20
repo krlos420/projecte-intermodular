@@ -45,11 +45,15 @@ class ShoppingListController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'quantity' => 'nullable|string|max:100',
+        ], [
+            'name.required' => 'El nombre del producto es obligatorio.',
+            'name.max' => 'El nombre es demasiado largo.',
+        ]);
+
         try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'quantity' => 'nullable|string|max:100',
-            ]);
 
             $user = Auth::user();
             if (!$user->house_id) {
@@ -80,6 +84,12 @@ class ShoppingListController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'quantity' => 'nullable|string|max:100',
+            'is_completed' => 'sometimes|boolean',
+        ]);
+
         try {
             $user = Auth::user();
             $item = ShoppingItem::find($id);
@@ -93,6 +103,9 @@ class ShoppingListController extends Controller
             }
 
             $item->update($request->only(['name', 'quantity', 'is_completed']));
+
+            // Cargar relación para devolver los datos completos
+            $item->load('user:id,name');
 
             return response()->json(['status' => 'true', 'message' => 'Producto actualizado', 'item' => $item]);
 
