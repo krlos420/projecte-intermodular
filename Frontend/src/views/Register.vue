@@ -183,7 +183,6 @@ export default {
           }, 1500)
         }
       } catch (err) {
-        console.error(err)
         if (err.response?.data?.errors) {
           const errors = err.response.data.errors
           const firstKey = Object.keys(errors)[0]

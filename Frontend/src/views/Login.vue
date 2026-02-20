@@ -66,10 +66,10 @@ export default {
         })
 
         if (success) {
+          if(window.mostrarNotificacion) window.mostrarNotificacion('¡Bienvenido de nuevo!', 'exito')
           router.push('/dashboard')
         }
       } catch (err) {
-        console.error(err)
         error.value = userStore.error || 'Credenciales incorrectas'
       } finally {
         cargando.value = false
