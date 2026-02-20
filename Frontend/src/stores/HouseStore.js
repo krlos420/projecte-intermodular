@@ -30,6 +30,7 @@ export const useHouseStore = defineStore('house', {
                     this.house = null
                 } else {
                     this.error = 'Error al cargar info de la casa'
+                    if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                     throw err
                 }
             } finally {
@@ -44,10 +45,12 @@ export const useHouseStore = defineStore('house', {
                 const response = await api.post('/houses/create', { name })
                 if (response.data.status === 'true') {
                     this.house = response.data.house
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Casa creada correctamente', 'exito')
                     return this.house
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al crear casa'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -62,10 +65,12 @@ export const useHouseStore = defineStore('house', {
                 if (response.data.status === 'true') {
                     // Despues de unirse, cargamos la info completa
                     await this.fetchMyHouse()
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Te has unido a la casa con éxito', 'exito')
                     return true
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al unirse a casa'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -79,10 +84,12 @@ export const useHouseStore = defineStore('house', {
                 const response = await api.post('/houses/leave')
                 if (response.data.status === 'true') {
                     this.house = null
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Has salido de la casa', 'info')
                     return true
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al salir de casa'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false

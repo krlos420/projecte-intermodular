@@ -28,6 +28,7 @@ export const useUserStore = defineStore('user', {
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error en registro'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -46,7 +47,8 @@ export const useUserStore = defineStore('user', {
                     return true
                 }
             } catch (err) {
-                this.error = err.response?.data?.message || 'Error en login'
+                this.error = err.response?.data?.message || 'Error al iniciar sesión'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -58,6 +60,7 @@ export const useUserStore = defineStore('user', {
                 await api.post('/auth/logout')
             } catch (err) {
                 console.error('Error al cerrar sesión', err)
+                if (window.mostrarNotificacion) window.mostrarNotificacion('Error al cerrar sesión', 'error')
             } finally {
                 this.token = null
                 this.user = null

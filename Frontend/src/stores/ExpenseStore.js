@@ -24,6 +24,7 @@ export const useExpenseStore = defineStore('expense', {
                 }
             } catch (err) {
                 this.error = 'Error al cargar los gastos'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 console.error(err)
             } finally {
                 this.loading = false
@@ -41,6 +42,7 @@ export const useExpenseStore = defineStore('expense', {
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al crear gasto'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -61,6 +63,7 @@ export const useExpenseStore = defineStore('expense', {
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al actualizar gasto'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
@@ -78,6 +81,7 @@ export const useExpenseStore = defineStore('expense', {
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al eliminar gasto'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
                 this.loading = false
