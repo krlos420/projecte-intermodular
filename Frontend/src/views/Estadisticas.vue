@@ -38,21 +38,9 @@
       <!-- Cuánto pagó cada uno -->
       <div class="seccion">
         <h2>💳 Pagos realizados</h2>
-        <div class="lista-pagos">
-          <div 
-            v-for="pago in estadisticas.payments_by_user" 
-            :key="pago.user_id" 
-            class="item-pago"
-          >
-            <div class="nombre-usuario">{{ pago.user_name }}</div>
-            <div class="barra-progreso">
-              <div 
-                class="barra-relleno" 
-                :style="{ width: calcularPorcentaje(pago.total_paid) + '%' }"
-              ></div>
-            </div>
-            <div class="cantidad-pagada">{{ pago.total_paid }}€</div>
-          </div>
+        <div class="grafico-container">
+          <Doughnut v-if="chartData" :data="chartData" :options="chartOptions" />
+          <p v-else class="vacio">No hay datos suficientes para el gráfico.</p>
         </div>
       </div>
 
@@ -97,15 +85,19 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
 import Spinner from '../components/Spinner.vue'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { Doughnut } from 'vue-chartjs'
+
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 export default {
   components: {
-    Spinner
+    Spinner,
+    Doughnut
   },
   setup() {
     const router = useRouter()
@@ -132,9 +124,52 @@ export default {
       return (estadisticas.value.total_month / numPersonas).toFixed(2)
     }
 
-    const calcularPorcentaje = (cantidad) => {
-      if (!estadisticas.value || estadisticas.value.total_month === 0) return 0
-      return (cantidad / estadisticas.value.total_month * 100).toFixed(1)
+    const chartData = computed(() => {
+      if (!estadisticas.value || !estadisticas.value.payments_by_user) return null
+
+      // Colores de la paleta del proyecto
+      const defaultColors = ['#42b983', '#ff9800', '#2b6cb0', '#f56565', '#ed8936', '#48bb78', '#9f7aea']
+      
+      return {
+        labels: estadisticas.value.payments_by_user.map(p => p.user_name),
+        datasets: [
+          {
+            backgroundColor: defaultColors.slice(0, estadisticas.value.payments_by_user.length),
+            data: estadisticas.value.payments_by_user.map(p => parseFloat(p.total_paid))
+          }
+        ]
+      }
+    })
+
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: {
+              size: 14,
+              family: "'Inter', sans-serif"
+            },
+            padding: 20
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed !== null) {
+                label += context.parsed.toFixed(2) + '€';
+              }
+              return label;
+            }
+          }
+        }
+      }
     }
 
     const volverDashboard = () => {
@@ -146,8 +181,9 @@ export default {
     return {
       estadisticas,
       cargando,
+      chartData,
+      chartOptions,
       calcularPromedio,
-      calcularPorcentaje,
       volverDashboard
     }
   }
@@ -277,58 +313,17 @@ header h1 {
   color: #333;
 }
 
-/* Lista de Pagos */
-.lista-pagos {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.item-pago {
-  display: grid;
-  grid-template-columns: 180px 1fr 120px;
-  align-items: center;
-  gap: 18px;
-  padding: 12px;
+/* Estilos Gráfico Doughnut */
+.grafico-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 400px;
+  margin: 0 auto;
+  padding: 20px;
   background: linear-gradient(135deg, #fafafa, #f5f5f5);
-  border-radius: 12px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.item-pago:hover {
-  transform: translateX(5px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.nombre-usuario {
-  font-weight: 600;
-  font-size: 1.05em;
-  color: #333;
-}
-
-.barra-progreso {
-  background: #e8ecf1;
-  border-radius: 12px;
-  height: 28px;
-  overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-}
-
-.barra-relleno {
-  background: linear-gradient(90deg, #42b983, #35a372);
-  height: 100%;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(66, 185, 131, 0.3);
-}
-
-.cantidad-pagada {
-  text-align: right;
-  font-weight: bold;
-  font-size: 1.2em;
-  background: linear-gradient(135deg, #42b983, #35a372);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  border-radius: 20px;
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
 }
 
 /* Lista de Balances */
@@ -433,14 +428,8 @@ header h1 {
     grid-template-columns: 1fr;
   }
   
-  .item-pago {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 16px;
-  }
-  
-  .cantidad-pagada {
-    text-align: left;
+  .grafico-container {
+    height: 350px;
   }
   
   .item-balance {
@@ -485,16 +474,9 @@ header h1 {
     font-size: 1.3em;
   }
   
-  .nombre-usuario {
-    font-size: 1em;
-  }
-  
-  .barra-progreso {
-    height: 24px;
-  }
-  
-  .cantidad-pagada {
-    font-size: 1.1em;
+  .grafico-container {
+    height: 300px;
+    padding: 10px;
   }
   
   .indicador-balance {
