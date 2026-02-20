@@ -59,13 +59,7 @@
         </div>
       </div>
 
-      <!-- Mensajes de Feedback -->
-      <transition name="fade">
-        <div v-if="mensaje" :class="['feedback-message', tipoMensaje]">
-          <span class="feedback-icon">{{ tipoMensaje === 'exito' ? '✅' : '⚠️' }}</span>
-          {{ mensaje }}
-        </div>
-      </transition>
+      <!-- Mensajes de Feedback movidos al Toast Global -->
       
       <div class="logout-section">
         <button @click="cerrarSesion" class="btn-text">Cerrar Sesión</button>
@@ -137,13 +131,8 @@ export default {
     }
 
     const mostrarMensaje = (texto, tipo) => {
-      mensaje.value = texto
-      tipoMensaje.value = tipo
-      // Auto-ocultar error después de 5s, éxito no (porque redirige)
-      if (tipo === 'error') {
-        setTimeout(() => {
-          mensaje.value = ''
-        }, 5000)
+      if(window.mostrarNotificacion) {
+        window.mostrarNotificacion(texto, tipo)
       }
     }
     
