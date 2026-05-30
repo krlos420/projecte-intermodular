@@ -11,6 +11,10 @@ class House extends Model
         'name',
         'invite_code',
         'creator_id',
+        'max_capacity',
+        'total_rent',
+        'latitude',
+        'longitude',
     ];
 
     // Usuarios que viven en este piso

@@ -69,6 +69,17 @@
         </transition-group>
       </div>
     </main>
+
+    <!-- Modal de Confirmación -->
+    <ConfirmModal 
+      :isOpen="mostrarConfirmacion"
+      title="Eliminar producto"
+      message="¿Estás seguro de eliminar este producto de la lista? Si ya lo has comprado, puedes marcar la casilla en su lugar."
+      confirmText="Eliminar"
+      confirmClass="btn-danger"
+      @confirm="handleConfirmDelete"
+      @cancel="mostrarConfirmacion = false"
+    />
   </div>
 </template>
 
@@ -77,9 +88,10 @@ import { ref, onMounted, computed } from 'vue'
 import { useShoppingStore } from '../stores/ShoppingStore'
 import { storeToRefs } from 'pinia'
 import Spinner from '../components/Spinner.vue'
+import ConfirmModal from '../components/ConfirmModal.vue'
 
 export default {
-  components: { Spinner },
+  components: { Spinner, ConfirmModal },
   setup() {
     const store = useShoppingStore()
     const { items, loading } = storeToRefs(store)
@@ -107,13 +119,23 @@ export default {
       store.toggleComplete(item.id, item.is_completed)
     }
 
+    const mostrarConfirmacion = ref(false)
+    const itemAEliminar = ref(null)
+
     const deleteItem = (id) => {
-      store.removeItem(id)
+      itemAEliminar.value = id
+      mostrarConfirmacion.value = true
+    }
+
+    const handleConfirmDelete = () => {
+      store.removeItem(itemAEliminar.value)
+      mostrarConfirmacion.value = false
     }
 
     return {
       items, loading, newItemName, newItemQuantity,
-      addNew, toggleItem, deleteItem, pendingCount, inputFocus
+      addNew, toggleItem, deleteItem, pendingCount, inputFocus,
+      mostrarConfirmacion, handleConfirmDelete
     }
   }
 }

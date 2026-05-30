@@ -25,9 +25,11 @@ export const useUserStore = defineStore('user', {
                     this.user = response.data.user
                     localStorage.setItem('token', this.token)
                     return true
+                } else {
+                    throw new Error(response.data.message || 'Error en el registro');
                 }
             } catch (err) {
-                this.error = err.response?.data?.message || 'Error en registro'
+                this.error = err.response?.data?.message || err.message || 'Error en el registro'
                 if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {
@@ -45,9 +47,11 @@ export const useUserStore = defineStore('user', {
                     this.user = response.data.user
                     localStorage.setItem('token', this.token)
                     return true
+                } else {
+                    throw new Error(response.data.message || 'Error al iniciar sesión');
                 }
             } catch (err) {
-                this.error = err.response?.data?.message || 'Error al iniciar sesión'
+                this.error = err.response?.data?.message || err.message || 'Error al iniciar sesión'
                 if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {

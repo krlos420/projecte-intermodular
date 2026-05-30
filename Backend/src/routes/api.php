@@ -32,8 +32,18 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::get('/my-house', [HouseController::class, 'myHouse'])->name('my-house');
         Route::post('/leave', [HouseController::class, 'leave'])->name('leave');
         Route::put('/update-name', [HouseController::class, 'updateName'])->name('update-name');
+        Route::put('/update-details', [HouseController::class, 'updateDetails'])->name('update-details');
+        Route::delete('/remove-user/{id}', [HouseController::class, 'removeUser'])->name('remove-user');
         Route::delete('/destroy', [HouseController::class, 'destroy'])->name('destroy');
+        // Nuevas rutas de geolocalización y peticiones
+        Route::get('/available', [HouseController::class, 'availableHouses'])->name('available');
+        Route::post('/request-join', [HouseController::class, 'requestJoin'])->name('request-join');
+        Route::get('/join-requests', [HouseController::class, 'getJoinRequests'])->name('join-requests');
+        Route::put('/join-requests/{id}', [HouseController::class, 'handleJoinRequest'])->name('join.handle');
     });
+
+    // Liquidaciones de deudas
+    Route::post('/settlements', [\App\Http\Controllers\SettlementController::class, 'store'])->name('settlements.store');
 
     // Expenses
     Route::prefix('expenses')->name('expenses.')->group(function (){

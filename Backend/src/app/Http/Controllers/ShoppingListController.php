@@ -27,7 +27,7 @@ class ShoppingListController extends Controller
             }
 
             $items = ShoppingItem::where('house_id', $house->id)
-                ->with('user:id,name') // Cargar quién lo pidió
+                ->with('user:id_user,name') // Cargar quién lo pidió
                 ->orderBy('is_completed', 'asc') // Pendientes primero
                 ->orderBy('created_at', 'desc')
                 ->get();
@@ -62,14 +62,14 @@ class ShoppingListController extends Controller
 
             $item = ShoppingItem::create([
                 'house_id' => $user->house_id,
-                'user_id' => $user->id,
+                'user_id' => $user->id_user,
                 'name' => $request->name,
                 'quantity' => $request->quantity,
                 'is_completed' => false
             ]);
 
             // Cargar relación user paramostrar nombre inmediatamente en frontend
-            $item->load('user:id,name');
+            $item->load('user:id_user,name');
 
             return response()->json(['status' => 'true', 'message' => 'Producto añadido', 'item' => $item], 201);
 
@@ -88,6 +88,11 @@ class ShoppingListController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'quantity' => 'nullable|string|max:100',
             'is_completed' => 'sometimes|boolean',
+        ], [
+            'name.required' => 'El nombre del producto es obligatorio.',
+            'name.max' => 'El nombre es demasiado largo.',
+            'quantity.max' => 'La cantidad es demasiado larga.',
+            'is_completed.boolean' => 'El estado de completado debe ser booleano.'
         ]);
 
         try {
@@ -105,7 +110,7 @@ class ShoppingListController extends Controller
             $item->update($request->only(['name', 'quantity', 'is_completed']));
 
             // Cargar relación para devolver los datos completos
-            $item->load('user:id,name');
+            $item->load('user:id_user,name');
 
             return response()->json(['status' => 'true', 'message' => 'Producto actualizado', 'item' => $item]);
 

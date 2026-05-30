@@ -38,11 +38,11 @@ export const useHouseStore = defineStore('house', {
             }
         },
 
-        async createHouse(name) {
+        async createHouse(houseData) {
             this.loading = true
             this.error = null
             try {
-                const response = await api.post('/houses/create', { name })
+                const response = await api.post('/houses/create', houseData)
                 if (response.data.status === 'true') {
                     this.house = response.data.house
                     if (window.mostrarNotificacion) window.mostrarNotificacion('Casa creada correctamente', 'exito')
@@ -89,6 +89,28 @@ export const useHouseStore = defineStore('house', {
                 }
             } catch (err) {
                 this.error = err.response?.data?.message || 'Error al salir de casa'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
+                throw err
+            } finally {
+                this.loading = false
+            }
+        },
+
+        async updateHouseDetails(details) {
+            this.loading = true
+            this.error = null
+            try {
+                const response = await api.put('/houses/update-details', details)
+                if (response.data.status === 'true') {
+                    if (this.house) {
+                        this.house.max_capacity = details.max_capacity
+                        this.house.total_rent = details.total_rent
+                    }
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Configuración guardada', 'exito')
+                    return true
+                }
+            } catch (err) {
+                this.error = err.response?.data?.message || 'Error al guardar la configuración'
                 if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
                 throw err
             } finally {

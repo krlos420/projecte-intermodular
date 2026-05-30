@@ -65,7 +65,6 @@ export const useShoppingStore = defineStore('shopping', {
         },
 
         async removeItem(id) {
-            if (!confirm('¿Has comprado o quieres eliminar este producto?')) return
             try {
                 await api.delete(`/shopping-list/destroy/${id}`)
                 this.items = this.items.filter(i => i.id !== id)

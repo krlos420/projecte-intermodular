@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-install pdo pdo_mysql xml ctype zip bcmath intl
 
 # Iniciar Xdebug
-RUN docker-php-ext-enable xdebug
+# RUN docker-php-ext-enable xdebug
 
 # Instalar Composer
 RUN curl -sS https://getcomposer.org/installer | php \

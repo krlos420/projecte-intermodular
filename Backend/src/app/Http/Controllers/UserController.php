@@ -21,18 +21,25 @@ class UserController extends Controller
     }
 
     // Actualizar usuario
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);
         }
 
         $validated = $request->validate([
-            'name' => 'required|string',
-            'email' => 'required|string',
+            'name' => 'required|string|min:3|max:255',
+            'email' => 'required|string|email|unique:users,email,' . $user->id_user . ',id_user',
             'phone' => 'required|string'
+        ], [
+            'name.required' => 'El nombre es obligatorio',
+            'name.min' => 'El nombre debe tener al menos 3 caracteres',
+            'email.required' => 'El correo es obligatorio',
+            'email.email' => 'Formato de correo inválido',
+            'email.unique' => 'Este correo ya está registrado',
+            'phone.required' => 'El teléfono es obligatorio'
         ]);
 
         $user->update([
@@ -48,9 +55,9 @@ class UserController extends Controller
     }
 
     // Eliminar usuario
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $user = User::find($id);
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);

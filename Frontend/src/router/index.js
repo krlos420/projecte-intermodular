@@ -8,6 +8,7 @@ const CreateJoinHouse = () => import('../views/CreateJoinHouse.vue')
 const Estadisticas = () => import('../views/Estadisticas.vue')
 const ShoppingList = () => import('../views/ShoppingList.vue')
 const Profile = () => import('../views/Profile.vue')
+const MapHouses = () => import('../views/MapHouses.vue')
 
 const router = createRouter({
     history: createWebHistory(),
@@ -36,6 +37,12 @@ const router = createRouter({
             path: '/create-join-house',
             name: 'CreateJoinHouse',
             component: CreateJoinHouse,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/map',
+            name: 'MapHouses',
+            component: MapHouses,
             meta: { requiresAuth: true }
         },
         {

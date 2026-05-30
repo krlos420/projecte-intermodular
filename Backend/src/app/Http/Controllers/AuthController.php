@@ -64,9 +64,9 @@ class AuthController extends Controller
         } catch(Exception $e) {
             return response()->json([
                 'status' => 'false',
-                'message' => 'Error al crear el usuari',
-                'error' => $e,
-            ], 200);
+                'message' => 'Error al crear el usuario',
+                'error' => $e->getMessage(),
+            ], 500);
         }
         
     }
@@ -110,15 +110,15 @@ class AuthController extends Controller
             // Resposta en JSON
             return response()->json([
                 'status' => 'true',
-                'message' => 'Usuari autenticat correctament',
+                'message' => 'Usuario autenticado correctamente',
                 'token' => $token,
                 'user' => $user,
             ], 200)->withCookie($cookie);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'false',
-                'message' => 'Error al autenticar el usuari',
-                'error' => $e,
+                'message' => 'Error al autenticar el usuario',
+                'error' => $e->getMessage(),
             ], 500);
         }
         

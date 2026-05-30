@@ -86,6 +86,24 @@ export const useExpenseStore = defineStore('expense', {
             } finally {
                 this.loading = false
             }
+        },
+
+        async createSettlement(data) {
+            this.loading = true
+            this.error = null
+            try {
+                const response = await api.post('/settlements', data)
+                if (response.data.status === 'true') {
+                    if (window.mostrarNotificacion) window.mostrarNotificacion('Deuda liquidada correctamente', 'exito')
+                    return true
+                }
+            } catch (err) {
+                this.error = err.response?.data?.message || 'Error al liquidar deuda'
+                if (window.mostrarNotificacion) window.mostrarNotificacion(this.error, 'error')
+                throw err
+            } finally {
+                this.loading = false
+            }
         }
     }
 })

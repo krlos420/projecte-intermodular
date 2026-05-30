@@ -57,7 +57,7 @@
             <div class="info-balance">
               <strong>{{ balance.user_name }}</strong>
               <p v-if="balance.balance > 0" class="texto-balance">
-                Le deben <span class="monto">{{ balance.balance }}€</span>
+                 Le deben <span class="monto">{{ balance.balance }}€</span>
               </p>
               <p v-else-if="balance.balance < 0" class="texto-balance">
                 Debe <span class="monto">{{ Math.abs(balance.balance) }}€</span>
@@ -85,6 +85,7 @@
   </div>
 </template>
 
+<script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
@@ -118,10 +119,9 @@ export default {
     }
 
     const calcularPromedio = () => {
-      if (!estadisticas.value || !estadisticas.value.payments_by_user) return 0
-      const numPersonas = estadisticas.value.payments_by_user.length
-      if (numPersonas === 0) return 0
-      return (estadisticas.value.total_month / numPersonas).toFixed(2)
+      if (!estadisticas.value) return 0
+      // per_person viene del backend y ya excluye al admin
+      return estadisticas.value.per_person ? estadisticas.value.per_person.toFixed(2) : '0.00'
     }
 
     const chartData = computed(() => {

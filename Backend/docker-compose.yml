@@ -6,7 +6,6 @@ services:
     user: 1000:1000
     volumes:
       - ./src:/var/www/html
-      - ./php/conf.d/99-xdebug.ini:/usr/local/etc/php/conf.d/99-xdebug.ini
     environment:
       DB_CONNECTION: mysql
       DB_HOST: mysql
