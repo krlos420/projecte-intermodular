@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * Funció per a registrar un Usuari
+     * Registro de un nuevo usuario
      *
      * @param UserRequest $request
      * @return json
@@ -33,31 +33,30 @@ class AuthController extends Controller
             'email.email'=>'Formato de correo inválido',
             'email.unique'=>'Este correo ya está registrado',
             'phone.required'=>'El teléfono es obligatorio',
-            'phone.regex'=> 'El teléfono debe tener entre 9 y 15 dígitos',
+            'phone.regex' => 'El teléfono debe tener entre 9 y 15 dígitos',
             'password.required'=>'La contraseña es obligatoria',
             'password.min'=>'La contraseña debe tener al menos 8 caracteres'
         ]);
         try {
-            // Creació del usuari mitjançant les dades introduides pel formulari
+            // Creamos el usuario con los datos del formulario
             $user = User::create([
                     'name' => $validatedData['name'],
                     'email' => $validatedData['email'],
                     'phone' => $validatedData['phone'],
                     'registration_date' => $validatedData['registration_date'],
-                    // Xifra la contrasenya per a que no siga una contrasenya en texet pla
+                    // Ciframos la contraseña para no guardarla en texto plano
                     'password' => Hash::make($validatedData['password']),
                 ]);
             
-            // Creem el token a partir de les dades de l'usuari
+            // Generamos el token de autenticación
             $token = $user->createToken('api-token')->plainTextToken;
 
-            // Insertem en les cookies el token creat abans
+            // Guardamos el token en una cookie httpOnly
             $cookie = cookie('auth_token', $token, 9999, '/', null, false, true);
 
-            // Retorna la contrasenya en JSON
             return response()->json([
                 'status' => 'true',
-                'message' => 'Usuari creat correctament',
+                'message' => 'Usuario creado correctamente',
                 'token' => $token,
                 'user' => $user,
             ], 200)->withCookie($cookie);
@@ -72,7 +71,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Funció de login per a usuaris
+     * Inicio de sesión de usuario
      *
      * @param LoginUserRequest $request
      * @return json
@@ -83,31 +82,27 @@ class AuthController extends Controller
             'email'=>'required|email',
             'password'=>'required|string|min:5'
         ],[
-            'email.required'=> 'El correo es obligatorio',
+            'email.required' => 'El correo es obligatorio',
             'email.email'=>'Formato de correo inválido',
             'password.required'=>'La contraseña es obligatoria'
 
         ]);
         try {
-            // Condicional d'error si l'usuari s'enganya al posar les credencials
+            // Si las credenciales son incorrectas devolvemos error 401
             if (!Auth::attempt($request->only(['email', 'password']))) {
-                // Resposta en JSON
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'Credencials incorrectes',
-                // Error 401: "Credencials incorrectes"
+                    'message' => 'Credenciales incorrectas',
                 ], 401);
             }
-            // Verifica el usuari
-            $user = User::where('email', $request->email)->first();
 
-            // Creem el token a partir de les dades de l'usuari
+            // Verificamos el usuario y generamos el token
+            $user = User::where('email', $request->email)->first();
             $token = $user->createToken('api-token')->plainTextToken;
 
-            // Insertem el token en les cookies
+            // Guardamos el token en una cookie httpOnly
             $cookie = cookie('auth_token', $token, 9999, '/', null, false, true);
 
-            // Resposta en JSON
             return response()->json([
                 'status' => 'true',
                 'message' => 'Usuario autenticado correctamente',
@@ -125,7 +120,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Funció per a tancar sessió de l'usuari
+     * Cierre de sesión del usuario
      *
      * @param Request $request
      * @return json
@@ -133,20 +128,20 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            // Eliminem tots els tokens de l'usuari
+            // Eliminamos todos los tokens del usuario
             $request->user()->tokens()->delete();
 
-            // Eliminem la cookie del token
+            // Eliminamos la cookie del token
             $cookie = cookie()->forget('auth_token');
 
             return response()->json([
                 'status' => 'true',
-                'message' => 'Sessió tancada correctament',
+                'message' => 'Sesión cerrada correctamente',
             ], 200)->withCookie($cookie);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'false',
-                'message' => 'Error al tancar sessió',
+                'message' => 'Error al cerrar la sesión',
                 'error' => $e->getMessage(),
             ], 500);
         }

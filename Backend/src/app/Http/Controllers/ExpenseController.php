@@ -9,7 +9,7 @@ use Exception;
 class ExpenseController extends Controller
 {
     /**
-     * Funció per a obtindre tots els gastos de la casa de l'usuari
+     * Obtiene todos los gastos de la casa del usuario autenticado
      *
      * @param Request $request
      * @return json
@@ -19,7 +19,7 @@ class ExpenseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
+            // Verificamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -27,7 +27,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-            // Obtenim els gastos de la casa amb la informació del pagador
+            // Obtenemos los gastos de la casa junto con la información del pagador
             $expenses = Expense::where('house_id', $user->house_id)
                 ->with('payer')
                 ->orderBy('date', 'desc')
@@ -47,7 +47,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Funció per a crear un nou gasto
+     * Crea un nuevo gasto en la casa del usuario
      *
      * @param Request $request
      * @return json
@@ -70,7 +70,7 @@ class ExpenseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
+            // Verificamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -78,9 +78,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-
-
-            // Validar que no sea el administrador
+            // El administrador no puede crear gastos ya que no vive en la casa
             $house = \App\Models\House::find($user->house_id);
             if ($house && $house->creator_id === $user->id_user) {
                 return response()->json([
@@ -89,9 +87,10 @@ class ExpenseController extends Controller
                 ], 403);
             }
 
+            // Si el gasto está marcado como pendiente, payer_id queda a null
             $payerId = $request->has('is_pending') && $request->is_pending ? null : $user->id_user;
 
-            // Creem el gasto
+            // Creamos el gasto
             $expense = Expense::create([
                 'title' => $request->title,
                 'amount' => $request->amount,
@@ -115,7 +114,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Funció per a obtindre un gasto específic
+     * Obtiene un gasto específico por su id
      *
      * @param numeric $id
      * @return json
@@ -133,7 +132,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            // Verificamos que el gasto pertenece a la casa del usuario
             if ($expense->house_id !== $user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -155,7 +154,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Funció per a actualitzar un gasto
+     * Actualiza un gasto existente
      *
      * @param Request $request
      * @param numeric $id
@@ -186,7 +185,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            // Verificamos que el gasto pertenece a la casa del usuario
             if ($expense->house_id !== $user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -194,13 +193,9 @@ class ExpenseController extends Controller
                 ], 403);
             }
 
-
-
-            // Actualitzem el gasto
             $updateData = $request->only(['title', 'amount', 'date']);
             
-            // Si pasan is_pending explícitamente y es falso, se lo asignamos a este usuario (lo ha pagado él)
-            // Si es true, lo dejamos a null (sigue pendiente o pasa a pendiente)
+            // Si is_pending es false, el usuario actual asume el gasto como pagador
             if ($request->has('is_pending')) {
                 $updateData['payer_id'] = $request->is_pending ? null : $user->id_user;
             }
@@ -222,7 +217,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Funció per a eliminar un gasto
+     * Elimina un gasto (solo el administrador)
      *
      * @param numeric $id
      * @return json
@@ -240,7 +235,7 @@ class ExpenseController extends Controller
                 ], 404);
             }
 
-            // Validació de seguretat: verificar que el gasto pertany a la casa de l'usuari
+            // Verificamos que el gasto pertenece a la casa del usuario
             if ($expense->house_id !== $user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -248,7 +243,7 @@ class ExpenseController extends Controller
                 ], 403);
             }
 
-            // Validar que el usuario es el administrador de la casa
+            // Solo el administrador puede eliminar gastos
             $house = \App\Models\House::find($user->house_id);
             if ($house->creator_id !== $user->id_user) {
                 return response()->json([
@@ -261,8 +256,8 @@ class ExpenseController extends Controller
             $expenseYear = date('Y', strtotime($expense->date));
             $expense->delete();
 
-            // Si el gasto tenía pagador, hay que limpiar los settlements de ese mes
-            // para que los balances queden en cero y no haya liquidaciones fantasma
+            // Al eliminar el gasto limpiamos los settlements del mismo mes
+            // para evitar que queden liquidaciones huérfanas que alteren los saldos
             \App\Models\Settlement::where('house_id', $user->house_id)
                 ->whereMonth('created_at', $expenseMonth)
                 ->whereYear('created_at', $expenseYear)
@@ -282,7 +277,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Funció per a obtindre estadístiques dels gastos de la casa
+     * Obtiene las estadísticas y saldos de la casa del mes actual
      *
      * @param Request $request
      * @return json
@@ -292,15 +287,15 @@ class ExpenseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
+            // Verificamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
-                    'message' => 'No estàs en cap casa',
+                    'message' => 'No estás en ninguna casa',
                 ], 404);
             }
 
-            // Obtenim els gastos del mes actual
+            // Obtenemos los gastos del mes en curso
             $currentMonth = now()->month;
             $currentYear = now()->year;
 
@@ -313,7 +308,8 @@ class ExpenseController extends Controller
             // Total del mes
             $totalMonth = $monthExpenses->sum('amount');
 
-            // Obtener todos los usuarios de la casa EXCLUYENDO al administrador
+            // Obtenemos los usuarios de la casa EXCLUYENDO al administrador (creator)
+            // El administrador es el arrendatario y no participa en el reparto
             $house = \App\Models\House::find($user->house_id);
             $usersInHouse = \App\Models\User::where('house_id', $user->house_id)
                 ->where('id_user', '!=', $house->creator_id)
@@ -321,7 +317,7 @@ class ExpenseController extends Controller
             $numUsers = $usersInHouse->count();
             $perPerson = $numUsers > 0 ? $totalMonth / $numUsers : 0;
 
-            // Calcular cuánto pagó cada usuario y estructurar como lo espera el frontend (payments_by_user)
+            // Calculamos cuánto ha pagado cada inquilino este mes
             $paymentsByUser = $usersInHouse->map(function ($u) use ($monthExpenses) {
                 $userExpenses = $monthExpenses->where('payer_id', $u->id_user);
                 return [
@@ -340,13 +336,14 @@ class ExpenseController extends Controller
             if ($monthExpenses->count() === 0) {
                 $balances = collect([]);
             } else {
-                // Calcular balances para cada compañero
+                // Calculamos el saldo de cada inquilino
+                // Positivo = le deben dinero, Negativo = debe dinero
                 $balances = $paymentsByUser->map(function ($p) use ($perPerson, $settlements) {
-                    $balance = round($p['total_paid'] - $perPerson, 2); // Positiu = ha pagat de més, negatiu = deu diners
+                    $balance = round($p['total_paid'] - $perPerson, 2);
 
-                    // Sumar pagos directos que este usuario ha hecho a otros
+                    // Sumamos los pagos directos que este usuario ha hecho a otros (liquida su deuda)
                     $paidToOthers = $settlements->where('payer_id', $p['user_id'])->sum('amount');
-                    // Restar pagos directos que este usuario ha recibido de otros
+                    // Restamos los pagos directos que ha recibido de otros
                     $receivedFromOthers = $settlements->where('receiver_id', $p['user_id'])->sum('amount');
 
                     $balance += $paidToOthers;

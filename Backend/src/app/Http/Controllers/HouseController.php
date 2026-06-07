@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 class HouseController extends Controller
 {
     /**
-     * Funció per a crear una nova casa
+     * Crea una nueva casa y asigna al usuario como administrador
      *
      * @param Request $request
      * @return json
@@ -32,7 +32,7 @@ class HouseController extends Controller
         try {
             $user = $request->user();
 
-            // Validació: l'usuari ja està en una casa
+            // Comprobamos que el usuario no pertenece ya a otra casa
             if ($user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -40,14 +40,12 @@ class HouseController extends Controller
                 ], 400);
             }
 
-
-
-            // Generem un codi d'invitació únic de 8 caràcters
+            // Generamos un código de invitación único de 8 caracteres
             do {
                 $inviteCode = strtoupper(Str::random(8));
             } while (House::where('invite_code', $inviteCode)->exists());
 
-            // Creem la casa
+            // Creamos la casa
             $house = House::create([
                 'name' => $request->name,
                 'invite_code' => $inviteCode,
@@ -58,7 +56,7 @@ class HouseController extends Controller
                 'longitude' => $request->longitude,
             ]);
 
-            // Assignem l'usuari actual a aquesta casa
+            // Asignamos el usuario a la casa recién creada
             $user->house_id = $house->id;
             $user->save();
 
@@ -77,7 +75,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a unir-se a una casa amb el codi d'invitació
+     * Une a un usuario a una casa mediante el código de invitación
      *
      * @param Request $request
      * @return json
@@ -93,7 +91,7 @@ class HouseController extends Controller
         try {
             $user = $request->user();
 
-            // Validació: l'usuari ja està en una casa
+            // Comprobamos que el usuario no pertenece ya a otra casa
             if ($user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -101,9 +99,7 @@ class HouseController extends Controller
                 ], 400);
             }
 
-
-
-            // Busquem la casa pel codi
+            // Buscamos la casa por el código de invitación
             $house = House::where('invite_code', $request->invite_code)->first();
 
             if (!$house) {
@@ -113,7 +109,7 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Assignem l'usuari a la casa
+            // Asignamos el usuario a la casa
             $user = $request->user();
             $user->house_id = $house->id;
             $user->save();
@@ -133,7 +129,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a obtindre la informació de la casa de l'usuari
+     * Devuelve la información de la casa del usuario autenticado
      *
      * @param Request $request
      * @return json
@@ -143,7 +139,7 @@ class HouseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
+            // Comprobamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -151,7 +147,7 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Obtenim la casa amb els usuaris
+            // Obtenemos la casa junto con todos sus usuarios
             $house = House::with('users')->find($user->house_id);
 
             return response()->json([
@@ -168,7 +164,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a eixir d'una casa
+     * Permite a un inquilino salir de la casa (comprueba deudas pendientes)
      *
      * @param Request $request
      * @return json
@@ -178,7 +174,7 @@ class HouseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari està en una casa
+            // Comprobamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -194,7 +190,7 @@ class HouseController extends Controller
                 ], 403);
             }
 
-            // Validación de deudas pendientes
+            // Calculamos si el usuario tiene deudas pendientes este mes
             $currentMonth = now()->month;
             $currentYear = now()->year;
 
@@ -204,7 +200,8 @@ class HouseController extends Controller
                 ->get();
 
             $totalMonth = $monthExpenses->sum('amount');
-            // Excluir al admin del conteo de usuarios y del cálculo de deudas
+
+            // Excluimos al administrador del cálculo de cuotas
             $house = \App\Models\House::find($user->house_id);
             $numUsers = User::where('house_id', $user->house_id)
                 ->where('id_user', '!=', $house->creator_id)
@@ -222,7 +219,7 @@ class HouseController extends Controller
                 ], 400);
             }
 
-            // Eliminem la casa de l'usuari
+            // Desvinculamos al usuario de la casa
             $user->house_id = null;
             $user->save();
 
@@ -240,7 +237,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a expulsar un usuari de la casa (només administrador)
+     * Expulsa a un inquilino de la casa (solo el administrador)
      *
      * @param Request $request
      * @param numeric $userId
@@ -281,7 +278,7 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Eliminem la casa de l'usuari
+            // Desvinculamos al usuario de la casa
             $userToRemove->house_id = null;
             $userToRemove->save();
 
@@ -299,7 +296,7 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a eliminar una casa (només el creador)
+     * Elimina la casa completa (solo el administrador/creador)
      *
      * @param Request $request
      * @return json
@@ -309,7 +306,7 @@ class HouseController extends Controller
         try {
             $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
+            // Comprobamos que el usuario pertenece a una casa
             if (!$user->house_id) {
                 return response()->json([
                     'status' => 'false',
@@ -326,7 +323,7 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Validació: només el creador pot eliminar la casa
+            // Solo el creador puede eliminar la casa
             if ($house->creator_id !== $user->id_user) {
                 return response()->json([
                     'status' => 'false',
@@ -334,10 +331,10 @@ class HouseController extends Controller
                 ], 403);
             }
 
-            // Eliminem la casa de tots els usuaris
+            // Desvinculamos a todos los usuarios de la casa antes de eliminarla
             User::where('house_id', $house->id)->update(['house_id' => null]);
 
-            // Eliminem la casa
+            // Eliminamos la casa
             $house->delete();
 
             return response()->json([
@@ -354,29 +351,28 @@ class HouseController extends Controller
     }
 
     /**
-     * Funció per a canviar el nom de la casa
+     * Actualiza el nombre de la casa (solo el administrador)
      *
      * @param Request $request
      * @return json
      */
     public function updateName(Request $request)
     {
-            $user = $request->user();
+        $user = $request->user();
 
-            // Comprovem si l'usuari té una casa assignada
-            if (!$user->house_id) {
-                return response()->json([
-                    'status' => 'false',
-                    'message' => 'No estás en ninguna casa',
-                ], 404);
-            }
+        // Comprobamos que el usuario pertenece a una casa
+        if (!$user->house_id) {
+            return response()->json([
+                'status' => 'false',
+                'message' => 'No estás en ninguna casa',
+            ], 404);
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
 
         try {
-
             $house = House::find($user->house_id);
 
             if (!$house) {
@@ -386,7 +382,7 @@ class HouseController extends Controller
                 ], 404);
             }
 
-            // Actualitzem el nom
+            // Actualizamos el nombre de la casa
             $house->name = $request->name;
             $house->save();
 
@@ -404,6 +400,12 @@ class HouseController extends Controller
         }
     }
 
+    /**
+     * Actualiza el aforo máximo y el alquiler total de la casa (solo el administrador)
+     *
+     * @param Request $request
+     * @return json
+     */
     public function updateDetails(Request $request)
     {
         $user = $request->user();
@@ -436,10 +438,17 @@ class HouseController extends Controller
         }
     }
 
+    /**
+     * Devuelve las casas disponibles para el mapa interactivo
+     * El aforo excluye al administrador ya que no es un inquilino
+     *
+     * @param Request $request
+     * @return json
+     */
     public function availableHouses(Request $request)
     {
         try {
-            // Obtener casas con el conteo de usuarios EXCLUYENDO al admin (creator)
+            // Contamos los usuarios de cada casa excluyendo al administrador
             $houses = House::withCount(['users as users_count' => function($q) {
                     $q->whereColumn('users.id_user', '!=', 'houses.creator_id');
                 }])
@@ -454,6 +463,12 @@ class HouseController extends Controller
         }
     }
 
+    /**
+     * Envía una solicitud de unión a una casa desde el mapa
+     *
+     * @param Request $request
+     * @return json
+     */
     public function requestJoin(Request $request)
     {
         $request->validate(['house_id' => 'required|exists:houses,id']);
@@ -480,6 +495,12 @@ class HouseController extends Controller
         }
     }
 
+    /**
+     * Obtiene las solicitudes de unión pendientes de una casa (solo el administrador)
+     *
+     * @param Request $request
+     * @return json
+     */
     public function getJoinRequests(Request $request)
     {
         try {
@@ -499,6 +520,13 @@ class HouseController extends Controller
         }
     }
 
+    /**
+     * Acepta o rechaza una solicitud de unión (solo el administrador)
+     *
+     * @param Request $request
+     * @param numeric $id
+     * @return json
+     */
     public function handleJoinRequest(Request $request, $id)
     {
         $request->validate(['action' => 'required|in:accept,reject']);
@@ -519,7 +547,7 @@ class HouseController extends Controller
                 $requester->house_id = $house->id;
                 $requester->save();
                 
-                // Rechazar las otras solicitudes pendientes de este usuario
+                // Rechazamos las otras solicitudes pendientes de este usuario
                 JoinRequest::where('user_id', $requester->id_user)->where('status', 'pending')->update(['status' => 'rejected']);
                 
                 return response()->json(['status' => 'true', 'message' => 'Usuario aceptado en la casa.'], 200);

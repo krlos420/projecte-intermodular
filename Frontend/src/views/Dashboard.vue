@@ -491,12 +491,10 @@ export default {
         if (tipoConfirmacion.value === 'crear') {
           await expenseStore.createExpense(gastoActual.value)
           cerrarModal()
-          // Recargar datos silenciadamente
           await cargarDatos(true)
         } else if (tipoConfirmacion.value === 'eliminar') {
           await expenseStore.deleteExpense(itemAEliminar.value)
           itemAEliminar.value = null
-          // Recargar datos silenciadamente
           await cargarDatos(true)
         } else if (tipoConfirmacion.value === 'pagarGasto') {
           const payload = {
